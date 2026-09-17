@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/database/database.dart';
+import 'package:gramercy/core/logging/app_logger.dart';
 import 'package:gramercy/features/localization/models/localization_entry.dart';
 import 'package:gramercy/features/localization/providers/config_providers.dart';
 import 'package:gramercy/features/localization/providers/environment_providers.dart';
@@ -138,12 +139,14 @@ class ExportNotifier extends Notifier<ExportState> {
 
       ref.invalidate(baseStringsProvider(fileName));
 
+      AppLogger.instance.i('Deployed $fileName (${overridesMap.length} overrides)', tag: 'EXPORT');
       state = ExportState(
         status: ExportStatus.success,
         message: 'Successfully deployed patches for $fileName to game!',
       );
       return true;
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.instance.e('Export failed for $fileName', tag: 'EXPORT', error: e, stack: st);
       state = ExportState(status: ExportStatus.error, message: 'Export failed: $e');
       return false;
     }
