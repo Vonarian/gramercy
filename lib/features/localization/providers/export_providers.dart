@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/database/database.dart';
 import 'package:gramercy/core/logging/app_logger.dart';
@@ -10,19 +11,27 @@ class ExportNotifier extends Notifier<ExportState> {
   ExportState build() => const ExportState();
 
   Future<bool> exportCurrentFile() async {
-    state = const ExportState(status: ExportStatus.inProgress, message: 'Deploying patches to game...');
+    state = const ExportState(
+      status: ExportStatus.inProgress,
+      message: 'Deploying patches to game...',
+    );
     final wtPath = ref.read(wtPathProvider);
     final fileName = ref.read(selectedFileProvider);
 
     if (wtPath == null || wtPath.isEmpty) {
-      state = const ExportState(status: ExportStatus.error, message: 'War Thunder install path is not set.');
+      state = const ExportState(
+        status: ExportStatus.error,
+        message: 'War Thunder install path is not set.',
+      );
       return false;
     }
 
     try {
       final db = ref.read(dbProvider);
       final overridesList = await db.getOverridesForFile(fileName);
-      final overridesMap = {for (var o in overridesList) o.stringKey: o.customValue};
+      final overridesMap = {
+        for (var o in overridesList) o.stringKey: o.customValue,
+      };
 
       final worker = ref.read(workerServiceProvider);
       final targetPath = p.join(wtPath, 'lang', fileName);
@@ -41,15 +50,26 @@ class ExportNotifier extends Notifier<ExportState> {
 
       ref.invalidate(baseStringsProvider(fileName));
 
-      AppLogger.instance.i('Deployed $fileName (${overridesMap.length} overrides)', tag: 'EXPORT');
+      AppLogger.instance.i(
+        'Deployed $fileName (${overridesMap.length} overrides)',
+        tag: 'EXPORT',
+      );
       state = ExportState(
         status: ExportStatus.success,
         message: 'Successfully deployed patches for $fileName to game!',
       );
       return true;
     } catch (e, st) {
-      AppLogger.instance.e('Export failed for $fileName', tag: 'EXPORT', error: e, stack: st);
-      state = ExportState(status: ExportStatus.error, message: 'Export failed: $e');
+      AppLogger.instance.e(
+        'Export failed for $fileName',
+        tag: 'EXPORT',
+        error: e,
+        stack: st,
+      );
+      state = ExportState(
+        status: ExportStatus.error,
+        message: 'Export failed: $e',
+      );
       return false;
     }
   }
@@ -57,7 +77,9 @@ class ExportNotifier extends Notifier<ExportState> {
   void reset() => state = const ExportState();
 }
 
-final exportNotifierProvider = NotifierProvider<ExportNotifier, ExportState>(ExportNotifier.new);
+final exportNotifierProvider = NotifierProvider<ExportNotifier, ExportState>(
+  ExportNotifier.new,
+);
 
 Future<void> saveLocalizationOverride({
   required WidgetRef ref,

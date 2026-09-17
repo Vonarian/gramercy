@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+
 import '../logging/app_logger.dart';
 
 part 'database.g.dart';
@@ -20,23 +21,23 @@ class LocalizationsOverrides extends Table {
 @DriftDatabase(tables: [LocalizationsOverrides])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
-      : super(executor ?? driftDatabase(name: 'wt_localization'));
+    : super(executor ?? driftDatabase(name: 'wt_localization'));
 
   @override
   int get schemaVersion => 1;
 
   // Watch overrides for a specific file to stream into Riverpod
   Stream<List<LocalizationsOverride>> watchOverridesForFile(String file) {
-    return (select(localizationsOverrides)
-          ..where((t) => t.fileName.equals(file)))
-        .watch();
+    return (select(
+      localizationsOverrides,
+    )..where((t) => t.fileName.equals(file))).watch();
   }
 
   // Future list of overrides for isolate export
   Future<List<LocalizationsOverride>> getOverridesForFile(String file) {
-    return (select(localizationsOverrides)
-          ..where((t) => t.fileName.equals(file)))
-        .get();
+    return (select(
+      localizationsOverrides,
+    )..where((t) => t.fileName.equals(file))).get();
   }
 
   // Upsert a patch on conflict with uniqueKeys [fileName, stringKey]
@@ -62,10 +63,11 @@ class AppDatabase extends _$AppDatabase {
 
   // Delete an override (revert to base game value)
   Future<int> deleteOverride(String file, String stringKey) async {
-    final deleted = await (delete(localizationsOverrides)
-          ..where((t) =>
-              t.fileName.equals(file) & t.stringKey.equals(stringKey)))
-        .go();
+    final deleted =
+        await (delete(localizationsOverrides)..where(
+              (t) => t.fileName.equals(file) & t.stringKey.equals(stringKey),
+            ))
+            .go();
     AppLogger.instance.i(
       'Reverted override [$file] $stringKey (deleted: $deleted)',
       tag: 'DRIFT',
@@ -75,8 +77,13 @@ class AppDatabase extends _$AppDatabase {
 
   // Clear all overrides for a file
   Future<int> clearOverridesForFile(String file) async {
-    final count = await (delete(localizationsOverrides)..where((t) => t.fileName.equals(file))).go();
-    AppLogger.instance.w('Cleared all $count overrides for file: $file', tag: 'DRIFT');
+    final count = await (delete(
+      localizationsOverrides,
+    )..where((t) => t.fileName.equals(file))).go();
+    AppLogger.instance.w(
+      'Cleared all $count overrides for file: $file',
+      tag: 'DRIFT',
+    );
     return count;
   }
 
