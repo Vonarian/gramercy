@@ -2,17 +2,50 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/theme/app_theme.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
-import 'package:gramercy/features/localization/ui/widgets/command_header.dart';
 import 'package:gramercy/features/localization/ui/widgets/empty_state_view.dart';
+import 'package:gramercy/features/localization/ui/widgets/file_sidebar.dart';
 import 'package:gramercy/features/localization/ui/widgets/localization_row_item.dart';
 import 'package:gramercy/features/localization/ui/widgets/search_and_filter_bar.dart';
 import 'package:gramercy/features/localization/ui/widgets/status_bar.dart';
+import 'package:gramercy/features/localization/ui/widgets/table_header.dart';
+import 'package:gramercy/features/localization/ui/widgets/top_app_bar.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    _listenToExportNotifications(context, ref);
+
+    return const Scaffold(
+      appBar: TopAppBar(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  FileSidebar(),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        SearchAndFilterBar(),
+                        TableHeader(),
+                        Expanded(child: _VirtualizedLocalizationList()),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            EditorStatusBar(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _listenToExportNotifications(BuildContext context, WidgetRef ref) {
     ref.listen<ExportState>(exportNotifierProvider, (prev, next) {
       if (next.status == ExportStatus.success) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -38,21 +71,6 @@ class HomeScreen extends ConsumerWidget {
         );
       }
     });
-
-    return const Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            CommandHeader(),
-            Divider(),
-            SearchAndFilterBar(),
-            Divider(),
-            Expanded(child: _VirtualizedLocalizationList()),
-            EditorStatusBar(),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -80,9 +98,7 @@ class _VirtualizedLocalizationListState extends ConsumerState<_VirtualizedLocali
 
     return baseStringsAsync.when(
       data: (_) {
-        if (filteredEntries.isEmpty) {
-          return const EmptyStateView();
-        }
+        if (filteredEntries.isEmpty) return const EmptyStateView();
 
         return Scrollbar(
           controller: _scrollController,

@@ -22,7 +22,7 @@ class LocalizationRowItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isOverridden = entry.isOverridden;
     final rowBg = isOverridden
-        ? AppTheme.emeraldGreen.withValues(alpha: 0.08)
+        ? AppTheme.emeraldGreen.withValues(alpha: 0.06)
         : (index.isEven ? AppTheme.background : AppTheme.surface);
 
     return InkWell(
@@ -33,8 +33,8 @@ class LocalizationRowItem extends StatelessWidget {
           border: Border(
             bottom: const BorderSide(color: AppTheme.border, width: 0.5),
             left: isOverridden
-                ? const BorderSide(color: AppTheme.emeraldGreen, width: 3.0)
-                : BorderSide.none,
+                ? const BorderSide(color: AppTheme.emeraldGreen, width: 2.5)
+                : const BorderSide(color: Colors.transparent, width: 2.5),
           ),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -42,14 +42,11 @@ class LocalizationRowItem extends StatelessWidget {
           children: [
             _buildKeyColumn(),
             const SizedBox(width: 16),
-            _buildValueColumn(),
+            _buildBaseValueColumn(),
+            const SizedBox(width: 16),
+            _buildCustomValueColumn(),
             const SizedBox(width: 12),
-            if (isOverridden) ...[
-              const _ModifiedBadge(),
-              const SizedBox(width: 8),
-              _buildRevertButton(context),
-            ],
-            _buildEditButton(context),
+            _buildActionsColumn(context),
           ],
         ),
       ),
@@ -58,75 +55,104 @@ class LocalizationRowItem extends StatelessWidget {
 
   Widget _buildKeyColumn() {
     return SizedBox(
-      width: 260,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            entry.key,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontFamily: 'Consolas',
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.tacticalCyan,
-            ),
-          ),
-          if (entry.isOverridden && entry.baseValue.isNotEmpty)
-            Text(
-              'Orig: ${entry.baseValue}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildValueColumn() {
-    return Expanded(
+      width: 240,
       child: Text(
-        entry.value,
-        maxLines: 2,
+        entry.key,
+        maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          fontSize: 13,
-          fontWeight: entry.isOverridden ? FontWeight.w600 : FontWeight.normal,
-          color: entry.isOverridden ? AppTheme.textPrimary : AppTheme.textSecondary,
+          fontFamily: AppTheme.monospace.fontFamily,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: entry.isOverridden ? AppTheme.primaryAmber : AppTheme.tacticalCyan,
         ),
       ),
     );
   }
 
-  Widget _buildRevertButton(BuildContext context) {
+  Widget _buildBaseValueColumn() {
+    final baseText = entry.baseValue.isNotEmpty ? entry.baseValue : entry.value;
+    return Expanded(
+      child: Text(
+        baseText,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          fontSize: 12,
+          color: AppTheme.textSecondary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomValueColumn() {
+    if (!entry.isOverridden) {
+      return const Expanded(
+        child: Text(
+          '—',
+          style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+        ),
+      );
+    }
+    return Expanded(
+      child: Text(
+        entry.value,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppTheme.textPrimary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionsColumn(BuildContext context) {
+    return SizedBox(
+      width: 190,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          if (entry.isOverridden) ...[
+            const _ModifiedBadge(),
+            const SizedBox(width: 4),
+            _buildRevertButton(),
+          ],
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, size: 16, color: AppTheme.textMuted),
+            tooltip: 'Edit Override',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+            onPressed: () => EditLocalizationDialog.show(context, fileName: fileName, entry: entry),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRevertButton() {
     if (onRevert != null) {
       return IconButton(
-        icon: const Icon(Icons.undo, size: 16, color: AppTheme.alertRed),
+        icon: const Icon(Icons.undo, size: 15, color: AppTheme.alertRed),
         tooltip: 'Revert to Base Game',
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
         onPressed: onRevert,
       );
     }
     return Consumer(
       builder: (context, ref, _) => IconButton(
-        icon: const Icon(Icons.undo, size: 16, color: AppTheme.alertRed),
+        icon: const Icon(Icons.undo, size: 15, color: AppTheme.alertRed),
         tooltip: 'Revert to Base Game',
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
         onPressed: () => revertLocalizationOverride(
           ref: ref,
           fileName: fileName,
           key: entry.key,
         ),
       ),
-    );
-  }
-
-  Widget _buildEditButton(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.edit_outlined, size: 16, color: AppTheme.textMuted),
-      tooltip: 'Edit Override',
-      onPressed: () => EditLocalizationDialog.show(context, fileName: fileName, entry: entry),
     );
   }
 }
@@ -137,7 +163,7 @@ class _ModifiedBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
         color: AppTheme.emeraldGreen.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(4),
@@ -147,8 +173,9 @@ class _ModifiedBadge extends StatelessWidget {
         'MODIFIED',
         style: TextStyle(
           color: AppTheme.emeraldGreen,
-          fontSize: 10,
+          fontSize: 9,
           fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
         ),
       ),
     );
