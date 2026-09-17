@@ -4,17 +4,17 @@ import 'package:gramercy/core/theme/app_theme.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
 import 'package:path/path.dart' as p;
 
+Future<void> patchConfigBlkHelper(WidgetRef ref) async {
+  final wtPath = ref.read(wtPathProvider);
+  if (wtPath == null) return;
+  final worker = ref.read(workerServiceProvider);
+  final configBlkPath = p.join(wtPath, 'config.blk');
+  await worker.patchConfigBlk(configBlkPath);
+  ref.invalidate(configBlkStatusProvider);
+}
+
 class ConfigStatusPill extends ConsumerWidget {
   const ConfigStatusPill({super.key});
-
-  Future<void> _patchConfigBlk(WidgetRef ref) async {
-    final wtPath = ref.read(wtPathProvider);
-    if (wtPath == null) return;
-    final worker = ref.read(workerServiceProvider);
-    final configBlkPath = p.join(wtPath, 'config.blk');
-    await worker.patchConfigBlk(configBlkPath);
-    ref.invalidate(configBlkStatusProvider);
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,7 +49,7 @@ class ConfigStatusPill extends ConsumerWidget {
           );
         }
         return OutlinedButton.icon(
-          onPressed: () => _patchConfigBlk(ref),
+          onPressed: () => patchConfigBlkHelper(ref),
           icon: const Icon(Icons.warning_amber_rounded, color: AppTheme.primaryAmber, size: 14),
           label: const Text('Enable in config.blk', style: TextStyle(color: AppTheme.primaryAmber, fontSize: 11)),
           style: OutlinedButton.styleFrom(

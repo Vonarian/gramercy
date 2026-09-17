@@ -19,6 +19,11 @@ class AppTheme {
   static const Color textSecondary = Color(0xFF94A3B8);
   static const Color textMuted = Color(0xFF64748B);
 
+  static const TextStyle monospace = TextStyle(
+    fontFamily: 'Consolas',
+    fontFamilyFallback: ['SF Mono', 'Menlo', 'Monaco', 'DejaVu Sans Mono', 'monospace'],
+  );
+
   static ThemeData get darkTheme {
     final colorScheme = ColorScheme.dark(
       primary: primaryAmber,
@@ -38,6 +43,7 @@ class AppTheme {
       scaffoldBackgroundColor: background,
       colorScheme: colorScheme,
       fontFamily: 'Segoe UI',
+      fontFamilyFallback: const ['SF Pro Text', 'Ubuntu', 'Roboto', 'Noto Sans', 'sans-serif'],
       cardTheme: CardThemeData(
         color: surface,
         elevation: 0,
