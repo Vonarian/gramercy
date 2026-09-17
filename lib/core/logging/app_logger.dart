@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io';
+
 import 'log_entry.dart';
 
 class AppLogger {
@@ -13,7 +14,8 @@ class AppLogger {
   final int maxBufferSize;
 
   final List<LogEntry> _buffer = [];
-  final StreamController<LogEntry> _controller = StreamController<LogEntry>.broadcast();
+  final StreamController<LogEntry> _controller =
+      StreamController<LogEntry>.broadcast();
 
   AppLogger({
     this.minLevel = LogLevel.info,
@@ -82,18 +84,27 @@ class AppLogger {
   void _appendFile(LogEntry entry) {
     try {
       final file = File(logFilePath!);
-      file.writeAsStringSync('${entry.toFormattedString()}\n', mode: FileMode.append);
+      file.writeAsStringSync(
+        '${entry.toFormattedString()}\n',
+        mode: FileMode.append,
+      );
     } catch (_) {}
   }
 
   static int _devLogLevel(LogLevel lvl) {
     switch (lvl) {
-      case LogLevel.verbose: return 300;
-      case LogLevel.debug: return 500;
-      case LogLevel.info: return 800;
-      case LogLevel.warning: return 900;
-      case LogLevel.error: return 1000;
-      case LogLevel.none: return 0;
+      case LogLevel.verbose:
+        return 300;
+      case LogLevel.debug:
+        return 500;
+      case LogLevel.info:
+        return 800;
+      case LogLevel.warning:
+        return 900;
+      case LogLevel.error:
+        return 1000;
+      case LogLevel.none:
+        return 0;
     }
   }
 

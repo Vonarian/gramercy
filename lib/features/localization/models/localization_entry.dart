@@ -13,8 +13,8 @@ class LocalizationEntry {
     required this.isOverridden,
     String? lowerKey,
     String? lowerValue,
-  })  : lowerKey = lowerKey ?? key.toLowerCase(),
-        lowerValue = lowerValue ?? value.toLowerCase();
+  }) : lowerKey = lowerKey ?? key.toLowerCase(),
+       lowerValue = lowerValue ?? value.toLowerCase();
 
   const LocalizationEntry.raw({
     required this.key,
@@ -31,25 +31,13 @@ class LocalizationEntry {
   }
 }
 
-enum FilterMode {
-  all,
-  overriddenOnly,
-  unmodifiedOnly,
-}
+enum FilterMode { all, overriddenOnly, unmodifiedOnly }
 
-enum ExportStatus {
-  idle,
-  inProgress,
-  success,
-  error,
-}
+enum ExportStatus { idle, inProgress, success, error }
 
 class ExportState {
   final ExportStatus status;
   final String? message;
 
-  const ExportState({
-    this.status = ExportStatus.idle,
-    this.message,
-  });
+  const ExportState({this.status = ExportStatus.idle, this.message});
 }

@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/theme/app_theme.dart';
@@ -17,7 +18,9 @@ class _SearchAndFilterBarState extends ConsumerState<SearchAndFilterBar> {
   @override
   void initState() {
     super.initState();
-    _searchController = TextEditingController(text: ref.read(searchQueryProvider));
+    _searchController = TextEditingController(
+      text: ref.read(searchQueryProvider),
+    );
   }
 
   @override
@@ -56,7 +59,11 @@ class _SearchAndFilterBarState extends ConsumerState<SearchAndFilterBar> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.table_chart_outlined, size: 16, color: AppTheme.primaryAmber),
+        const Icon(
+          Icons.table_chart_outlined,
+          size: 16,
+          color: AppTheme.primaryAmber,
+        ),
         const SizedBox(width: 6),
         Text(
           fileName,
@@ -81,12 +88,26 @@ class _SearchAndFilterBarState extends ConsumerState<SearchAndFilterBar> {
         decoration: InputDecoration(
           hintText: 'Search keys or text... ($shortcutHint)',
           hintStyle: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-          prefixIcon: const Icon(Icons.search, size: 16, color: AppTheme.textMuted),
-          prefixIconConstraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 0,
+          ),
+          prefixIcon: const Icon(
+            Icons.search,
+            size: 16,
+            color: AppTheme.textMuted,
+          ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 32,
+            minHeight: 32,
+          ),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.close, size: 14, color: AppTheme.textMuted),
+                  icon: const Icon(
+                    Icons.close,
+                    size: 14,
+                    color: AppTheme.textMuted,
+                  ),
                   padding: EdgeInsets.zero,
                   onPressed: () {
                     _searchController.clear();
@@ -95,7 +116,10 @@ class _SearchAndFilterBarState extends ConsumerState<SearchAndFilterBar> {
                   },
                 )
               : null,
-          suffixIconConstraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 28,
+            minHeight: 28,
+          ),
         ),
         onChanged: (val) {
           setState(() {});
@@ -142,7 +166,11 @@ class _SearchAndFilterBarState extends ConsumerState<SearchAndFilterBar> {
       ),
       child: Text(
         '$filtered / $total',
-        style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+        style: const TextStyle(
+          fontSize: 11,
+          color: AppTheme.textSecondary,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }

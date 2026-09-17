@@ -29,7 +29,11 @@ class PathIndicator extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppTheme.background,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: hasPath ? AppTheme.border : AppTheme.alertRed.withValues(alpha: 0.4)),
+        border: Border.all(
+          color: hasPath
+              ? AppTheme.border
+              : AppTheme.alertRed.withValues(alpha: 0.4),
+        ),
       ),
       child: Row(
         children: [
@@ -65,7 +69,14 @@ class PathIndicator extends ConsumerWidget {
       onTap: () => _pickDirectory(context, ref),
       child: const Padding(
         padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        child: Text('Browse', style: TextStyle(color: AppTheme.primaryAmber, fontSize: 11, fontWeight: FontWeight.w600)),
+        child: Text(
+          'Browse',
+          style: TextStyle(
+            color: AppTheme.primaryAmber,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }
@@ -81,7 +92,14 @@ class PathIndicator extends ConsumerWidget {
       },
       child: const Padding(
         padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        child: Text('Auto-Detect', style: TextStyle(color: AppTheme.tacticalCyan, fontSize: 11, fontWeight: FontWeight.w600)),
+        child: Text(
+          'Auto-Detect',
+          style: TextStyle(
+            color: AppTheme.tacticalCyan,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }

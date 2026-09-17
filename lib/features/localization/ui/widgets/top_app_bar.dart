@@ -53,7 +53,8 @@ class TopAppBar extends ConsumerWidget implements PreferredSizeWidget {
             width: 28,
             height: 28,
             fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => const Icon(Icons.radio, color: AppTheme.primaryAmber, size: 20),
+            errorBuilder: (_, _, _) =>
+                const Icon(Icons.radio, color: AppTheme.primaryAmber, size: 20),
           ),
         ),
         const SizedBox(width: 10),
@@ -91,14 +92,18 @@ class TopAppBar extends ConsumerWidget implements PreferredSizeWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Auto-Deploy', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+          const Text(
+            'Auto-Deploy',
+            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+          ),
           const SizedBox(width: 6),
           Transform.scale(
             scale: 0.8,
             child: Switch(
               value: autoExport,
               activeTrackColor: AppTheme.primaryAmber,
-              onChanged: (val) => ref.read(autoExportProvider.notifier).setVal(val),
+              onChanged: (val) =>
+                  ref.read(autoExportProvider.notifier).setVal(val),
             ),
           ),
         ],
@@ -109,15 +114,31 @@ class TopAppBar extends ConsumerWidget implements PreferredSizeWidget {
   Widget _buildDeployButton(WidgetRef ref, ExportState exportState) {
     final inProgress = exportState.status == ExportStatus.inProgress;
     return ElevatedButton.icon(
-      onPressed: inProgress ? null : () => ref.read(exportNotifierProvider.notifier).exportCurrentFile(),
+      onPressed: inProgress
+          ? null
+          : () => ref.read(exportNotifierProvider.notifier).exportCurrentFile(),
       style: ElevatedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         minimumSize: const Size(0, 34),
       ),
       icon: inProgress
-          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+          ? const SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.black,
+              ),
+            )
           : const Icon(Icons.rocket_launch, size: 14, color: Colors.black),
-      label: Text(inProgress ? 'Deploying...' : 'Deploy to Game', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
+      label: Text(
+        inProgress ? 'Deploying...' : 'Deploy to Game',
+        style: const TextStyle(
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+      ),
     );
   }
 
@@ -125,7 +146,8 @@ class TopAppBar extends ConsumerWidget implements PreferredSizeWidget {
     return IconButton(
       icon: const Icon(Icons.terminal, size: 18, color: AppTheme.textSecondary),
       tooltip: 'View System Logs',
-      onPressed: () => showDialog(context: context, builder: (_) => const LogViewerDialog()),
+      onPressed: () =>
+          showDialog(context: context, builder: (_) => const LogViewerDialog()),
     );
   }
 }

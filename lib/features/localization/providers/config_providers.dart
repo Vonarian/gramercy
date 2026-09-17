@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/services/preferences_service.dart';
 
@@ -47,7 +48,9 @@ class WtPathNotifier extends Notifier<String?> {
   }
 }
 
-final wtPathProvider = NotifierProvider<WtPathNotifier, String?>(WtPathNotifier.new);
+final wtPathProvider = NotifierProvider<WtPathNotifier, String?>(
+  WtPathNotifier.new,
+);
 
 class AutoExportNotifier extends Notifier<bool> {
   @override
@@ -67,7 +70,9 @@ class AutoExportNotifier extends Notifier<bool> {
   }
 }
 
-final autoExportProvider = NotifierProvider<AutoExportNotifier, bool>(AutoExportNotifier.new);
+final autoExportProvider = NotifierProvider<AutoExportNotifier, bool>(
+  AutoExportNotifier.new,
+);
 
 class SelectedFileNotifier extends Notifier<String> {
   @override
@@ -81,4 +86,6 @@ class SelectedFileNotifier extends Notifier<String> {
   }
 }
 
-final selectedFileProvider = NotifierProvider<SelectedFileNotifier, String>(SelectedFileNotifier.new);
+final selectedFileProvider = NotifierProvider<SelectedFileNotifier, String>(
+  SelectedFileNotifier.new,
+);

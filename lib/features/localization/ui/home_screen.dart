@@ -53,7 +53,10 @@ class HomeScreen extends ConsumerWidget {
             backgroundColor: AppTheme.emeraldGreen,
             content: Text(
               next.message ?? 'Export successful!',
-              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             duration: const Duration(seconds: 3),
           ),
@@ -64,7 +67,10 @@ class HomeScreen extends ConsumerWidget {
             backgroundColor: AppTheme.alertRed,
             content: Text(
               next.message ?? 'Export failed.',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             duration: const Duration(seconds: 4),
           ),
@@ -78,10 +84,12 @@ class _VirtualizedLocalizationList extends ConsumerStatefulWidget {
   const _VirtualizedLocalizationList();
 
   @override
-  ConsumerState<_VirtualizedLocalizationList> createState() => _VirtualizedLocalizationListState();
+  ConsumerState<_VirtualizedLocalizationList> createState() =>
+      _VirtualizedLocalizationListState();
 }
 
-class _VirtualizedLocalizationListState extends ConsumerState<_VirtualizedLocalizationList> {
+class _VirtualizedLocalizationListState
+    extends ConsumerState<_VirtualizedLocalizationList> {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -131,7 +139,10 @@ class _VirtualizedLocalizationListState extends ConsumerState<_VirtualizedLocali
           children: [
             CircularProgressIndicator(color: AppTheme.primaryAmber),
             SizedBox(height: 16),
-            Text('Parsing localization CSV with worker isolate...', style: TextStyle(color: AppTheme.textSecondary)),
+            Text(
+              'Parsing localization CSV with worker isolate...',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
           ],
         ),
       ),
@@ -141,11 +152,24 @@ class _VirtualizedLocalizationListState extends ConsumerState<_VirtualizedLocali
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: AppTheme.alertRed),
+              const Icon(
+                Icons.error_outline,
+                size: 48,
+                color: AppTheme.alertRed,
+              ),
               const SizedBox(height: 16),
-              Text('Error loading $fileName: $err', style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
+              Text(
+                'Error loading $fileName: $err',
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 8),
-              const Text('Make sure War Thunder path is set and lang/ contains CSV files.', style: TextStyle(color: AppTheme.textSecondary)),
+              const Text(
+                'Make sure War Thunder path is set and lang/ contains CSV files.',
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
             ],
           ),
         ),

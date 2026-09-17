@@ -60,19 +60,23 @@ All commit messages must follow the [Conventional Commits](https://www.conventio
 
 ### 2.3 End-to-End Release Cycle
 
-1. **Sync `dev**`: Ensure local `dev` is up to date (`git checkout dev && git pull origin dev`).
+1. **Sync `dev`**: Ensure local `dev` is up to date (`git checkout dev && git pull origin dev`).
 2. **Branch Off**: Cut a new working branch (`git checkout -b feat/<name> dev`).
 3. **Implement via TDD**: Write tests first, implement minimal code, and refactor within LoC limits.
-4. **Local Verification**: Run the full test suite and static analysis (`flutter test`).
-5. **PR / Merge to `dev**`: Open a Pull Request targeting `dev` (or merge directly if self-contained).
-6. **Confirm on `dev**`: Switch to `dev`, pull upstream changes, and run the test suite to guarantee zero regression:
+4. **Local Verification**: Format code, run static analysis, and execute the full test suite:
 ```bash
-flutter test
-```[cite: 1]
-
+dart format --output=none --set-exit-if-changed .
+flutter analyze
+flutter test --coverage
 ```
-
-7. **Release PR to `main**`: Once stability is verified on `dev`, open a release PR from `dev` to `main`.
+5. **PR / Merge to `dev`**: Open a Pull Request targeting `dev` (or merge directly if self-contained).
+6. **Confirm on `dev`**: Switch to `dev`, pull upstream changes, and run the verification suite to guarantee zero regression:
+```bash
+dart format --output=none --set-exit-if-changed .
+flutter analyze
+flutter test --coverage
+```
+7. **Release PR to `main`**: Once stability is verified on `dev`, open a release PR from `dev` to `main`.
 ---
 
 ## 3. Strict Lines of Code (LoC) & Modularity Budgets
@@ -81,27 +85,18 @@ To ensure high maintainability, readability, and agent context fit, all Dart fil
 
 | Target Scope | Maximum LoC | Enforcement Action |
 | --- | --- | --- |
-| **Dart Source File (`.dart` non-test)** | **200 lines**<br> | Extract sub-widgets, DAOs, or domain entities.
+| **Dart Source File (`.dart` non-test)** | **200 lines**<br> | Extract sub-widgets, DAOs, or domain entities. |
+| **Function / Method** | **40 lines**<br> | Decompose logic into smaller helper functions with single responsibilities. |
+| **Flutter Widget `build()` Method** | **50 lines**<br> | Extract widget sub-trees into dedicated `StatelessWidget` classes in `presentation/widgets/`. |
+| **Test File (`_test.dart`)** | **400 lines**<br> | Split test suites into multiple behavioral test files. |
 
- |
-| **Function / Method** | **40 lines**<br> | Decompose logic into smaller helper functions with single responsibilities.
-
- |
-| **Flutter Widget `build()` Method** | **50 lines**<br> | Extract widget sub-trees into dedicated `StatelessWidget` classes in `presentation/widgets/`.
-
- |
-| **Test File (`_test.dart`)** | **400 lines**<br> | Split test suites into multiple behavioral test files.
-
- |
+> [!IMPORTANT]
+> LoC ceilings apply to **formatted code** (`dart format .`). If running `dart format .` causes a file or function to exceed these limits, it must be decomposed and modularized into sub-components immediately.
 
 ### 3.1 Flutter Decomposition Strategies
 
 * **Widget Granularity**: Never inline large UI sub-trees inside screen widgets; create granular reusable `StatelessWidget` components.
-
-
 * **Logic Isolation**: Keep all business logic and side effects in dedicated state controllers and repository abstractions; widgets must only observe and render.
-
-
 * **Data Models**: Avoid monster models; split state into focused, immutable data classes.
 
 ---
@@ -124,48 +119,32 @@ All new features, state notifiers, repositories, and bug fixes must follow the *
 ┌────────────────────────────────┐
 │ 3. REFACTOR: Clean & Modular   │ (Enforce LoC limits, optimize, keep green)
 └────────────────────────────────┘
-
 ```
 
 ### 4.1 Strict TDD Rules
 
 * **Never write production code before a failing test exists**.
-
-
 * Every test must fail for the expected reason before implementing the solution.
-
-
 * Run tests continuously throughout development.
-
-
 
 ### 4.2 Flutter Testing Standards
 
 * **Tooling**: `flutter_test`, `mocktail` for mocks and spies.
-
-
 * **Pattern**: Grouped behavior-driven unit, repository, and widget tests (`group('RoutineRepository', () { ... })`).
-
-
 * **Execution Command**:
 ```bash
 flutter test --coverage
-```[cite: 1]
-
 ```
-
 * **Coverage Target**: Minimum **80% line coverage** on repositories, DAOs, domain logic, and state providers.
 
 ---
 
 ## 5. Dart & Flutter Quality Directives
 
+* **Mandatory Formatting**: Format all Dart code with `dart format .`. Verification in CI and local hooks strictly enforces `dart format --output=none --set-exit-if-changed .`.
 * **Sound Null-Safety**: Never use the force-unwrap operator (`!`) without a prior null-check assertion.
-
 * **Immutability**: Ensure all models, UI state objects, and domain entities are immutable.
-
 * **Separation of Concerns**: UI widgets must never trigger direct network or raw database calls; route all operations through repository and provider interfaces.
-
 * **Widget Composition**: Build screens through shallow composition of small, focused `StatelessWidget` elements rather than monolithic builder functions.
 
 ---
@@ -175,12 +154,14 @@ flutter test --coverage
 Before submitting a PR or marking a task complete, verify every requirement:
 
 * [ ] **GitFlow**: Work was performed on a `feat/*` or `fix/*` branch cut from `dev`.
+* [ ] **Dart Format**: `dart format --output=none --set-exit-if-changed .` passes cleanly with zero diffs.
 * [ ] **TDD Verified**: A failing test was written first, followed by passing implementation and refactoring.
 * [ ] **Flutter Tests**: `flutter test --coverage` passes with ≥ 80% coverage.
+* [ ] **Static Analysis**: `flutter analyze` reports zero warnings or errors.
 * [ ] **LoC Limits Enforced**:
-* [ ] Every non-test Dart source file ≤ 200 lines.
-* [ ] Every function or method ≤ 40 lines.
-* [ ] Every Flutter `build()` method ≤ 50 lines.
-* [ ] Every test file ≤ 400 lines.
+  * [ ] Every non-test Dart source file ≤ 200 lines (measured after `dart format .`).
+  * [ ] Every function or method ≤ 40 lines.
+  * [ ] Every Flutter `build()` method ≤ 50 lines.
+  * [ ] Every test file ≤ 400 lines.
 * [ ] **Commit Format**: All commit messages follow the Conventional Commits specification.
-* [ ] **Integration Confirmed on `dev**`: Branch merged/rebased to `dev` and verified clean prior to the `main` release PR.
+* [ ] **Integration Confirmed on `dev`**: Branch merged/rebased to `dev` and verified clean prior to the `main` release PR.
