@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/theme/app_theme.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
+import 'log_viewer_dialog.dart';
 
 class EditorStatusBar extends ConsumerWidget {
   const EditorStatusBar({super.key});
@@ -47,6 +48,20 @@ class EditorStatusBar extends ConsumerWidget {
             const Text(
               '• Ponytail Delta-Patching Engine • 120Hz Virtualized',
               style: TextStyle(fontSize: 11, color: AppTheme.textMuted),
+            ),
+            const SizedBox(width: 16),
+            InkWell(
+              onTap: () => LogViewerDialog.show(context),
+              child: const Row(
+                children: [
+                  Icon(Icons.terminal_rounded, size: 13, color: AppTheme.tacticalCyan),
+                  SizedBox(width: 4),
+                  Text(
+                    'Diagnostics',
+                    style: TextStyle(fontSize: 11, color: AppTheme.tacticalCyan),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
