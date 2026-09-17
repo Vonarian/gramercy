@@ -7,13 +7,14 @@
 [![Riverpod](https://img.shields.io/badge/State-Riverpod%203-0553B1)](https://riverpod.dev)
 [![Drift](https://img.shields.io/badge/Storage-Drift%20SQLite-003B57)](https://drift.simonbinder.eu)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-14%20Passed-brightgreen)](test/)
+[![Tests](https://img.shields.io/badge/Tests-32%20Passed-brightgreen)](test/)
+[![Platforms](https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux%20%7C%20macOS-blue)](https://flutter.dev)
 
 ---
 
 ## 1. Overview
 
-**Gramercy** is a native desktop application designed for War Thunder simulation pilots, tankers, modders, and content creators. It provides an instant, responsive interface to search through 50,000+ game strings, customize vehicle designations, ammunition names, kill feed messages, and menu texts, and deploy them directly into War Thunder without risking broken files or lost changes after game updates.
+**Gramercy** is a native desktop application designed for War Thunder simulation pilots, tankers, modders, and content creators across **Windows (primary), Linux, and macOS**. It provides an instant, responsive interface to search through 50,000+ game strings, customize vehicle designations, ammunition names, kill feed messages, and menu texts, and deploy them directly into War Thunder without risking broken files or lost changes after game updates.
 
 ### The Golden Rule: Delta-Patching Engine
 Unlike generic spreadsheet tools or raw text editors that permanently overwrite game files:
@@ -29,11 +30,12 @@ Unlike generic spreadsheet tools or raw text editors that permanently overwrite 
 
 - **Drift SQLite Delta Vault**: Persistent local storage of custom string overrides (`file_name`, `string_key`, `custom_value`) with compound upsert logic and reactive change streams.
 - **Multi-Threaded Isolate Engine**: CSV parsing and export generation run completely off the UI thread via `worker_manager` background isolates.
-- **120Hz Virtualized Cockpit UI**: Uses fixed-extent virtualization (`itemExtent: 64.0`) to scroll smoothly across 50,000+ entries without frame drops.
+- **Master-Detail Desktop Workspace**: Collapsible CSV file sidebar with modified count badges, unified top navigation header, sticky search/filter bar, and fixed column headers.
+- **120Hz Virtualized Cockpit UI**: Uses fixed-extent virtualization (`itemExtent: 56.0`) with pre-indexed search tokens and 150ms debouncing to scroll smoothly across 50,000+ entries without frame drops.
+- **Cross-Platform Auto-Detection**: Automatically detects War Thunder installations on Windows (Steam / Standalone), Linux (Steam default paths), and macOS (Application Support).
 - **Non-Destructive Deploy & `.orig` Backups**: Automatically creates `.orig` safety backups before touching game CSV files, preserving all non-English language columns intact.
 - **1-Click `config.blk` Hook**: Real-time inspection and safe injection of `testLocalization:b=yes` in War Thunder's `config.blk` debug block.
-- **Instant Search & Filter**: Sub-millisecond substring search and filter toggles (`All`, `Modified Only`, `Original Only`).
-- **Tactical Flight-Deck Aesthetics**: High-density military simulation cockpit styling (dark slate background, tactical amber accents, monospace key labels).
+- **Tactical Aesthetics**: High-density military simulation cockpit styling (dark slate background, tactical amber accents, monospace key labels).
 
 ---
 
@@ -57,13 +59,15 @@ flowchart TD
         BaseMap["In-Memory Base Map"]
         OverrideMap["In-Memory Overrides Map"]
         Synth["Synthesized Merged View"]
-        Filter["Debounced Search & Filter"]
+        Filter["Debounced Search & Token Filter"]
     end
 
-    subgraph UI [Flutter Desktop View]
-        AppUI["120Hz Virtualized List\n(Fixed itemExtent: 64.0)"]
+    subgraph UI [Flutter Desktop Master-Detail Workspace]
+        TopBar["TopAppBar & PathIndicator"]
+        Sidebar["Collapsible FileSidebar"]
+        Header["TableHeader & SearchBar"]
+        AppUI["120Hz Virtualized List\n(Fixed itemExtent: 56.0)"]
         EditModal["Side-by-Side Override Editor"]
-        CommandHeader["Game Path Auto-Detect & Deploy"]
     end
 
     WTCSV -->|Read| ParserWorker
@@ -73,11 +77,13 @@ flowchart TD
     OverrideMap --> Synth
     Synth --> Filter
     Filter --> AppUI
+    Sidebar -->|Select File| Synth
+    TopBar -->|Auto-Detect / Browse| WTConfig
+    TopBar -->|Trigger Export| ExportWorker
     AppUI --> EditModal
     EditModal -->|Save/Delete Delta| DB
-    CommandHeader -->|Trigger Export| ExportWorker
     ExportWorker -->|.orig Backup| WTCSV
-    CommandHeader -->|Enable Hook| HookWorker
+    TopBar -->|Enable Hook| HookWorker
     HookWorker -->|Inject testLocalization| WTConfig
 ```
 
@@ -86,9 +92,9 @@ flowchart TD
 ## 4. Getting Started
 
 ### Prerequisites
-- **Operating System**: Windows 10/11 (x64)
+- **Operating Systems**: Windows 10/11 (x64, primary), Linux (x64), or macOS (Apple Silicon & Intel)
 - **War Thunder**: Installed via Steam or Gaijin Standalone Launcher
-- **Flutter SDK**: `>= 3.24.0` (with desktop enabled: `flutter config --enable-windows-desktop`)
+- **Flutter SDK**: `>= 3.24.0` (with desktop enabled: `flutter config --enable-windows-desktop` / `--enable-linux-desktop` / `--enable-macos-desktop`)
 
 ### Building from Source
 
