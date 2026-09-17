@@ -21,7 +21,13 @@ class AppTheme {
 
   static const TextStyle monospace = TextStyle(
     fontFamily: 'Consolas',
-    fontFamilyFallback: ['SF Mono', 'Menlo', 'Monaco', 'DejaVu Sans Mono', 'monospace'],
+    fontFamilyFallback: [
+      'SF Mono',
+      'Menlo',
+      'Monaco',
+      'DejaVu Sans Mono',
+      'monospace',
+    ],
   );
 
   static ThemeData get darkTheme {
@@ -43,7 +49,13 @@ class AppTheme {
       scaffoldBackgroundColor: background,
       colorScheme: colorScheme,
       fontFamily: 'Segoe UI',
-      fontFamilyFallback: const ['SF Pro Text', 'Ubuntu', 'Roboto', 'Noto Sans', 'sans-serif'],
+      fontFamilyFallback: const [
+        'SF Pro Text',
+        'Ubuntu',
+        'Roboto',
+        'Noto Sans',
+        'sans-serif',
+      ],
       cardTheme: CardThemeData(
         color: surface,
         elevation: 0,
@@ -55,7 +67,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surfaceElevated,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 10,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
           borderSide: const BorderSide(color: border),
