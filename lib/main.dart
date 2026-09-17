@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/database/database.dart';
@@ -18,28 +19,8 @@ Future<void> main() async {
   // 1. Initialize Isolate Worker Manager
   await workerManager.init();
 
-  // 2. Desktop Window Optimization (skipped in test environment)
-  final isTest = Platform.environment.containsKey('FLUTTER_TEST');
-  if (!isTest && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-    try {
-      await windowManager.ensureInitialized();
-      const windowOptions = WindowOptions(
-        size: Size(1200, 800),
-        minimumSize: Size(960, 640),
-        center: true,
-        title: 'War Thunder Localization Editor',
-        backgroundColor: Colors.transparent,
-        skipTaskbar: false,
-        titleBarStyle: TitleBarStyle.normal,
-      );
-      await windowManager.waitUntilReadyToShow(windowOptions, () async {
-        await windowManager.show();
-        await windowManager.focus();
-      });
-    } catch (_) {
-      // Non-fatal if window_manager cannot initialize
-    }
-  }
+  // 2. Desktop Window Optimization
+  await _setupDesktopWindow();
 
   // 3. Initialize Persistent Storage: SharedPreferences & Drift SQLite
   final sharedPreferences = await SharedPreferences.getInstance();
@@ -63,6 +44,29 @@ Future<void> main() async {
       child: const WarThunderEditorApp(),
     ),
   );
+}
+
+Future<void> _setupDesktopWindow() async {
+  final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+  if (!isTest && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    try {
+      await windowManager.ensureInitialized();
+      const windowOptions = WindowOptions(
+        size: Size(1200, 800),
+        minimumSize: Size(960, 640),
+        center: true,
+        title: 'War Thunder Localization Editor',
+        skipTaskbar: false,
+        titleBarStyle: TitleBarStyle.normal,
+      );
+      await windowManager.waitUntilReadyToShow(windowOptions, () async {
+        await windowManager.show();
+        await windowManager.focus();
+      });
+    } catch (_) {
+      // Non-fatal if window_manager cannot initialize
+    }
+  }
 }
 
 class WarThunderEditorApp extends StatelessWidget {
