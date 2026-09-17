@@ -69,12 +69,16 @@ class _SearchAndFilterBarState extends ConsumerState<SearchAndFilterBar> {
                   icon: const Icon(Icons.close, size: 16, color: AppTheme.textMuted),
                   onPressed: () {
                     _searchController.clear();
-                    ref.read(searchQueryProvider.notifier).setQuery('');
+                    setState(() {});
+                    ref.read(searchQueryProvider.notifier).clear();
                   },
                 )
               : null,
         ),
-        onChanged: (val) => ref.read(searchQueryProvider.notifier).setQuery(val),
+        onChanged: (val) {
+          setState(() {});
+          ref.read(searchQueryProvider.notifier).setQuery(val);
+        },
       ),
     );
   }
