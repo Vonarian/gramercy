@@ -41,7 +41,9 @@ class ReadOnlyBlock extends StatelessWidget {
             style: TextStyle(
               fontFamily: isMonospace ? 'Consolas' : null,
               fontSize: 13,
-              color: isMonospace ? AppTheme.tacticalCyan : AppTheme.textSecondary,
+              color: isMonospace
+                  ? AppTheme.tacticalCyan
+                  : AppTheme.textSecondary,
             ),
           ),
         ),

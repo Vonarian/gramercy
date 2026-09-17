@@ -68,11 +68,7 @@ void main() {
 
       final expectation = expectLater(
         stream,
-        emitsInOrder([
-          isEmpty,
-          hasLength(1),
-          isEmpty,
-        ]),
+        emitsInOrder([isEmpty, hasLength(1), isEmpty]),
       );
 
       // Give Drift stream a moment to emit initial state

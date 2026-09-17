@@ -18,9 +18,7 @@ void main() {
       prefsService = PreferencesService(prefs);
 
       container = ProviderContainer(
-        overrides: [
-          prefsProvider.overrideWithValue(prefsService),
-        ],
+        overrides: [prefsProvider.overrideWithValue(prefsService)],
       );
     });
 
@@ -33,13 +31,16 @@ void main() {
       expect(level, LogLevel.warning);
     });
 
-    test('logLevelNotifierProvider updates level, logger and preferences', () async {
-      final notifier = container.read(logLevelNotifierProvider.notifier);
-      await notifier.setLogLevel(LogLevel.debug);
+    test(
+      'logLevelNotifierProvider updates level, logger and preferences',
+      () async {
+        final notifier = container.read(logLevelNotifierProvider.notifier);
+        await notifier.setLogLevel(LogLevel.debug);
 
-      expect(container.read(logLevelNotifierProvider), LogLevel.debug);
-      expect(prefsService.logLevel, 'debug');
-      expect(AppLogger.instance.minLevel, LogLevel.debug);
-    });
+        expect(container.read(logLevelNotifierProvider), LogLevel.debug);
+        expect(prefsService.logLevel, 'debug');
+        expect(AppLogger.instance.minLevel, LogLevel.debug);
+      },
+    );
   });
 }

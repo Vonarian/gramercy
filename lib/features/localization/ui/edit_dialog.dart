@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/theme/app_theme.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
+import 'package:gramercy/features/localization/ui/widgets/edit_dialog_actions.dart';
+import 'package:gramercy/features/localization/ui/widgets/edit_dialog_header.dart';
 import 'package:gramercy/features/localization/ui/widgets/read_only_block.dart';
 
 class EditLocalizationDialog extends ConsumerStatefulWidget {
@@ -22,10 +24,8 @@ class EditLocalizationDialog extends ConsumerStatefulWidget {
     return showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (context) => EditLocalizationDialog(
-        fileName: fileName,
-        entry: entry,
-      ),
+      builder: (context) =>
+          EditLocalizationDialog(fileName: fileName, entry: entry),
     );
   }
 
@@ -101,18 +101,33 @@ class _EditLocalizationDialogState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildDialogHeader(),
+              EditDialogHeader(
+                fileName: widget.fileName,
+                isOverridden: widget.entry.isOverridden,
+              ),
               const SizedBox(height: 20),
-              ReadOnlyBlock(label: 'STRING KEY', value: widget.entry.key, isMonospace: true),
+              ReadOnlyBlock(
+                label: 'STRING KEY',
+                value: widget.entry.key,
+                isMonospace: true,
+              ),
               const SizedBox(height: 16),
               ReadOnlyBlock(
                 label: 'BASE GAME VALUE (ORIGINAL)',
-                value: widget.entry.baseValue.isEmpty ? '(No base string in original game CSV)' : widget.entry.baseValue,
+                value: widget.entry.baseValue.isEmpty
+                    ? '(No base string in original game CSV)'
+                    : widget.entry.baseValue,
               ),
               const SizedBox(height: 16),
               _buildEditorInput(),
               const SizedBox(height: 24),
-              _buildActionButtons(),
+              EditDialogActions(
+                isOverridden: widget.entry.isOverridden,
+                isSaving: _isSaving,
+                onCancel: () => Navigator.of(context).pop(),
+                onSave: _handleSave,
+                onRevert: _handleRevert,
+              ),
             ],
           ),
         ),
@@ -120,46 +135,19 @@ class _EditLocalizationDialogState
     );
   }
 
-  Widget _buildDialogHeader() {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryAmber.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: const Icon(Icons.edit_note, color: AppTheme.primaryAmber, size: 22),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Edit Localization String', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-              Text(widget.fileName, style: const TextStyle(fontSize: 12, color: AppTheme.textMuted)),
-            ],
-          ),
-        ),
-        if (widget.entry.isOverridden)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: AppTheme.emeraldGreen.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: AppTheme.emeraldGreen.withValues(alpha: 0.3)),
-            ),
-            child: const Text('MODIFIED', style: TextStyle(color: AppTheme.emeraldGreen, fontSize: 11, fontWeight: FontWeight.bold)),
-          ),
-      ],
-    );
-  }
-
   Widget _buildEditorInput() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('CUSTOM OVERRIDE VALUE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textMuted, letterSpacing: 0.6)),
+        const Text(
+          'CUSTOM OVERRIDE VALUE',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textMuted,
+            letterSpacing: 0.6,
+          ),
+        ),
         const SizedBox(height: 6),
         TextField(
           controller: _controller,
@@ -167,32 +155,10 @@ class _EditLocalizationDialogState
           maxLines: 3,
           minLines: 1,
           style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary),
-          decoration: const InputDecoration(hintText: 'Enter replacement name or text...'),
-          onChanged: (_) => setState(() {}),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        if (widget.entry.isOverridden)
-          OutlinedButton.icon(
-            onPressed: _isSaving ? null : _handleRevert,
-            icon: const Icon(Icons.undo, size: 16, color: AppTheme.alertRed),
-            label: const Text('Revert to Base', style: TextStyle(color: AppTheme.alertRed)),
-            style: OutlinedButton.styleFrom(side: BorderSide(color: AppTheme.alertRed.withValues(alpha: 0.5))),
+          decoration: const InputDecoration(
+            hintText: 'Enter replacement name or text...',
           ),
-        const Spacer(),
-        TextButton(onPressed: _isSaving ? null : () => Navigator.of(context).pop(), child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondary))),
-        const SizedBox(width: 8),
-        ElevatedButton(
-          onPressed: _isSaving ? null : _handleSave,
-          child: _isSaving
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-              : const Text('Save Override'),
+          onChanged: (_) => setState(() {}),
         ),
       ],
     );

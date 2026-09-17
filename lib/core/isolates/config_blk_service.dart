@@ -29,8 +29,8 @@ ConfigBlkStatus checkConfigBlkStatusWorker(String configBlkPath) {
 
   if (match != null) {
     final blockContent = match.group(1) ?? '';
-    final enabled =
-        RegExp(r'testLocalization:b\s*=\s*yes').hasMatch(blockContent);
+    final enabled = RegExp(r'testLocalization:b\s*=\s*yes')
+        .hasMatch(blockContent);
     return ConfigBlkStatus(
       exists: true,
       isLocalizationEnabled: enabled,
@@ -76,7 +76,8 @@ Future<bool> patchConfigBlkWorker(String configBlkPath) async {
         match.end,
         'debug{$updatedBlock}',
       );
-    } else if (!RegExp(r'testLocalization:b\s*=\s*yes').hasMatch(blockContent)) {
+    } else if (!RegExp(r'testLocalization:b\s*=\s*yes')
+        .hasMatch(blockContent)) {
       final updatedBlock = '\n  testLocalization:b=yes$blockContent';
       updatedContent = content.replaceRange(
         match.start,

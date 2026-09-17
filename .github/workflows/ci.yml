@@ -1,0 +1,82 @@
+name: CI - Code Quality & Multi-Platform Desktop Build
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-and-test:
+    name: Code Quality, Formatting & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Verify Code Formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Static Analysis
+        run: flutter analyze --fatal-infos
+
+      - name: Run Test Suite with Coverage
+        run: flutter test --coverage
+
+  build-desktop:
+    name: Build Desktop (${{ matrix.target }})
+    needs: quality-and-test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: windows
+            os: windows-latest
+            build_cmd: flutter build windows --release
+          - target: linux
+            os: ubuntu-latest
+            build_cmd: flutter build linux --release
+          - target: macos
+            os: macos-latest
+            build_cmd: flutter build macos --release
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Linux Build Dependencies
+        if: matrix.target == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Enable Desktop Platforms
+        run: flutter config --enable-windows-desktop --enable-macos-desktop --enable-linux-desktop
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Compile Release Binary
+        run: ${{ matrix.build_cmd }}
