@@ -46,16 +46,17 @@ class TopAppBar extends ConsumerWidget implements PreferredSizeWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryAmber.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.4)),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: Image.asset(
+            'assets/images/app_logo.png',
+            width: 28,
+            height: 28,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => const Icon(Icons.radio, color: AppTheme.primaryAmber, size: 20),
           ),
-          child: const Icon(Icons.shield, color: AppTheme.primaryAmber, size: 16),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,

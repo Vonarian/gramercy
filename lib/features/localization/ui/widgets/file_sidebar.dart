@@ -17,7 +17,7 @@ class _FileSidebarState extends ConsumerState<FileSidebar> {
   Widget build(BuildContext context) {
     final selectedFile = ref.watch(selectedFileProvider);
     final availableFilesAsync = ref.watch(availableFilesProvider);
-    final width = _isCollapsed ? 52.0 : 220.0;
+    final width = _isCollapsed ? 56.0 : 220.0;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -44,31 +44,45 @@ class _FileSidebarState extends ConsumerState<FileSidebar> {
   }
 
   Widget _buildHeader() {
+    if (_isCollapsed) {
+      return SizedBox(
+        height: 42,
+        child: Center(
+          child: IconButton(
+            icon: const Icon(Icons.chevron_right, size: 18, color: AppTheme.textMuted),
+            tooltip: 'Expand Sidebar',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            onPressed: () => setState(() => _isCollapsed = false),
+          ),
+        ),
+      );
+    }
+
     return Container(
       height: 42,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
         children: [
-          if (!_isCollapsed) ...[
-            const Icon(Icons.folder_copy_outlined, size: 16, color: AppTheme.textSecondary),
-            const SizedBox(width: 8),
-            const Expanded(
-              child: Text(
-                'CSV FILES',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                  color: AppTheme.textSecondary,
-                ),
+          const Icon(Icons.folder_copy_outlined, size: 16, color: AppTheme.textSecondary),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'CSV FILES',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+                color: AppTheme.textSecondary,
               ),
             ),
-          ],
+          ),
           IconButton(
-            icon: Icon(_isCollapsed ? Icons.chevron_right : Icons.chevron_left, size: 18, color: AppTheme.textMuted),
-            tooltip: _isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar',
-            visualDensity: VisualDensity.compact,
-            onPressed: () => setState(() => _isCollapsed = !_isCollapsed),
+            icon: const Icon(Icons.chevron_left, size: 18, color: AppTheme.textMuted),
+            tooltip: 'Collapse Sidebar',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+            onPressed: () => setState(() => _isCollapsed = true),
           ),
         ],
       ),
@@ -119,13 +133,14 @@ class _FileItem extends ConsumerWidget {
         child: Container(
           height: 38,
           margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 0 : 8),
           decoration: BoxDecoration(
             color: isSelected ? AppTheme.surfaceElevated : Colors.transparent,
             borderRadius: BorderRadius.circular(6),
             border: isSelected ? Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.3)) : null,
           ),
           child: Row(
+            mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
             children: [
               Icon(
                 Icons.description_outlined,

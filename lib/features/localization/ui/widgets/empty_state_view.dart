@@ -32,14 +32,15 @@ class EmptyStateView extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryAmber.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppTheme.primaryAmber.withValues(alpha: 0.3)),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.asset(
+                  'assets/images/app_logo.png',
+                  width: 72,
+                  height: 72,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const Icon(Icons.radio, size: 56, color: AppTheme.primaryAmber),
                 ),
-                child: const Icon(Icons.shield_outlined, size: 48, color: AppTheme.primaryAmber),
               ),
               const SizedBox(height: 16),
               const Text(
