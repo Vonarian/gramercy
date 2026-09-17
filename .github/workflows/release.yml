@@ -2,21 +2,50 @@ name: Release - Multi-Platform Distribution
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*.*.*'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag name (e.g. v1.2.0)'
-        required: true
-        default: 'v1.2.0'
+        description: 'Release tag name (e.g. v1.1.3)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
 
 jobs:
+  quality-and-test:
+    name: Code Quality & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Verify Code Formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Static Analysis
+        run: flutter analyze --fatal-infos
+
+      - name: Run Test Suite
+        run: flutter test --coverage
+
   build-windows:
     name: Build Windows Release
+    needs: quality-and-test
     runs-on: windows-latest
 
     steps:
@@ -51,6 +80,7 @@ jobs:
 
   build-linux:
     name: Build Linux Release
+    needs: quality-and-test
     runs-on: ubuntu-latest
 
     steps:
@@ -89,6 +119,7 @@ jobs:
 
   build-macos:
     name: Build macOS Release
+    needs: quality-and-test
     runs-on: macos-latest
 
     steps:
@@ -121,13 +152,28 @@ jobs:
           path: gramercy-macos.zip
 
   publish-release:
-    name: Create GitHub Release
+    name: Publish to GitHub Releases
     needs: [build-windows, build-linux, build-macos]
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Determine Release Tag
+        id: release_tag
+        shell: bash
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          elif [ -n "${{ inputs.tag }}" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
+            TAG="v${VERSION}"
+          fi
+          echo "Release tag: $TAG"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Download Windows Artifact
         uses: actions/download-artifact@v4
@@ -147,9 +193,13 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name || inputs.tag }}
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          name: Gramercy ${{ steps.release_tag.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           files: |
             gramercy-windows-x64.zip
             gramercy-linux-x64.tar.gz
             gramercy-macos.zip
           generate_release_notes: true
+          draft: false
+          prerelease: false
