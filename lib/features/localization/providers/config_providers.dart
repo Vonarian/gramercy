@@ -18,12 +18,23 @@ class WtPathNotifier extends Notifier<String?> {
   }
 
   bool autoDetect() {
-    final candidatePaths = [
-      r'C:\Program Files (x86)\Steam\steamapps\common\War Thunder',
-      r'D:\SteamLibrary\steamapps\common\War Thunder',
-      r'E:\SteamLibrary\steamapps\common\War Thunder',
-      r'C:\Games\WarThunder',
-      r'C:\WarThunder',
+    final home = Platform.environment['HOME'] ?? '';
+    final candidatePaths = <String>[
+      if (Platform.isWindows) ...[
+        r'C:\Program Files (x86)\Steam\steamapps\common\War Thunder',
+        r'D:\SteamLibrary\steamapps\common\War Thunder',
+        r'E:\SteamLibrary\steamapps\common\War Thunder',
+        r'C:\Games\WarThunder',
+        r'C:\WarThunder',
+      ],
+      if (Platform.isLinux && home.isNotEmpty) ...[
+        '$home/.local/share/Steam/steamapps/common/War Thunder',
+        '$home/.steam/steam/steamapps/common/War Thunder',
+        '$home/.steam/root/steamapps/common/War Thunder',
+      ],
+      if (Platform.isMacOS && home.isNotEmpty) ...[
+        '$home/Library/Application Support/Steam/steamapps/common/War Thunder',
+      ],
     ];
 
     for (final path in candidatePaths) {
