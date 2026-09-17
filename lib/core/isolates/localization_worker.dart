@@ -1,23 +1,26 @@
 import 'dart:io';
 import 'package:gramercy/core/isolates/config_blk_service.dart';
+import 'package:gramercy/core/isolates/csv_export_worker.dart';
+import 'package:gramercy/features/localization/models/localization_entry.dart';
 import 'package:worker_manager/worker_manager.dart';
 
 export 'package:gramercy/core/isolates/config_blk_service.dart';
+export 'package:gramercy/core/isolates/csv_export_worker.dart';
 
 class CsvTaskParameters {
   final String filePath;
   const CsvTaskParameters(this.filePath);
 }
 
-class ExportTaskParameters {
-  final String baseFilePath;
-  final String targetFilePath;
-  final Map<String, String> overrides; // key -> customValue
+class FilterTaskParameters {
+  final List<LocalizationEntry> entries;
+  final String query;
+  final FilterMode filterMode;
 
-  const ExportTaskParameters({
-    required this.baseFilePath,
-    required this.targetFilePath,
-    required this.overrides,
+  const FilterTaskParameters({
+    required this.entries,
+    required this.query,
+    this.filterMode = FilterMode.all,
   });
 }
 
@@ -62,69 +65,25 @@ Future<Map<String, String>> parseCsvWorker(CsvTaskParameters params) async {
   return localizationMap;
 }
 
-/// Synthesizes and exports patched CSV back to the lang/ folder off-thread.
-Future<bool> exportPatchedCsvWorker(ExportTaskParameters params) async {
-  final baseFile = File(params.baseFilePath);
-  final targetFile = File(params.targetFilePath);
+/// Off-thread filtering task for large localization datasets
+List<LocalizationEntry> filterEntriesWorker(FilterTaskParameters params) {
+  final q = params.query.trim().toLowerCase();
+  final matchOverridden = params.filterMode == FilterMode.overriddenOnly;
+  final matchUnmodified = params.filterMode == FilterMode.unmodifiedOnly;
 
-  final targetDir = targetFile.parent;
-  if (!await targetDir.exists()) {
-    await targetDir.create(recursive: true);
+  if (q.isEmpty && params.filterMode == FilterMode.all) {
+    return params.entries;
   }
 
-  final backupFile = File('${params.baseFilePath}.orig');
-  if (await baseFile.exists() && !await backupFile.exists()) {
-    try {
-      await baseFile.copy(backupFile.path);
-    } catch (_) {}
+  final results = <LocalizationEntry>[];
+  for (var i = 0; i < params.entries.length; i++) {
+    final entry = params.entries[i];
+    if (matchOverridden && !entry.isOverridden) continue;
+    if (matchUnmodified && entry.isOverridden) continue;
+    if (q.isNotEmpty && !entry.matchesQuery(q)) continue;
+    results.add(entry);
   }
-
-  final List<String> outputLines = [];
-
-  if (await baseFile.exists()) {
-    var content = await (await backupFile.exists()
-        ? backupFile.readAsString()
-        : baseFile.readAsString());
-
-    if (content.startsWith('\uFEFF')) {
-      content = content.substring(1);
-    }
-
-    final lines = content.replaceAll('\r\n', '\n').split('\n');
-    for (var i = 0; i < lines.length; i++) {
-      final line = lines[i];
-      if (line.trim().isEmpty) continue;
-
-      final cols = line.split(';');
-      if (i > 0 && cols.isNotEmpty) {
-        final key = cleanWtString(cols[0]);
-        if (params.overrides.containsKey(key)) {
-          final customVal = params.overrides[key]!;
-          final formattedVal = customVal.contains(';') || customVal.contains('"')
-              ? '"${customVal.replaceAll('"', '""')}"'
-              : customVal;
-          if (cols.length > 1) {
-            cols[1] = formattedVal;
-          } else {
-            cols.add(formattedVal);
-          }
-        }
-      }
-      outputLines.add(cols.join(';'));
-    }
-  } else {
-    outputLines.add('<ID>;<English>');
-    for (final entry in params.overrides.entries) {
-      final val = entry.value;
-      final formattedVal = val.contains(';') || val.contains('"')
-          ? '"${val.replaceAll('"', '""')}"'
-          : val;
-      outputLines.add('${entry.key};$formattedVal');
-    }
-  }
-
-  await targetFile.writeAsString(outputLines.join('\r\n'), flush: true);
-  return true;
+  return results;
 }
 
 // ---------------------------------------------------------------------------
@@ -148,6 +107,20 @@ class LocalizationWorkerService {
         baseFilePath: baseFilePath,
         targetFilePath: targetFilePath,
         overrides: overrides,
+      )),
+    );
+  }
+
+  Future<List<LocalizationEntry>> filterEntries({
+    required List<LocalizationEntry> entries,
+    required String query,
+    FilterMode filterMode = FilterMode.all,
+  }) {
+    return workerManager.execute(
+      () => filterEntriesWorker(FilterTaskParameters(
+        entries: entries,
+        query: query,
+        filterMode: filterMode,
       )),
     );
   }

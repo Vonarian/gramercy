@@ -56,11 +56,24 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _VirtualizedLocalizationList extends ConsumerWidget {
+class _VirtualizedLocalizationList extends ConsumerStatefulWidget {
   const _VirtualizedLocalizationList();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_VirtualizedLocalizationList> createState() => _VirtualizedLocalizationListState();
+}
+
+class _VirtualizedLocalizationListState extends ConsumerState<_VirtualizedLocalizationList> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final fileName = ref.watch(selectedFileProvider);
     final baseStringsAsync = ref.watch(baseStringsProvider(fileName));
     final filteredEntries = ref.watch(filteredStringsProvider(fileName));
@@ -72,15 +85,25 @@ class _VirtualizedLocalizationList extends ConsumerWidget {
         }
 
         return Scrollbar(
+          controller: _scrollController,
           thumbVisibility: true,
           child: ListView.builder(
-            itemExtent: 64.0,
+            controller: _scrollController,
+            itemExtent: 56.0,
+            addRepaintBoundaries: true,
             itemCount: filteredEntries.length,
             itemBuilder: (context, index) {
+              final item = filteredEntries[index];
               return LocalizationRowItem(
+                key: ValueKey(item.key),
                 fileName: fileName,
-                entry: filteredEntries[index],
+                entry: item,
                 index: index,
+                onRevert: () => revertLocalizationOverride(
+                  ref: ref,
+                  fileName: fileName,
+                  key: item.key,
+                ),
               );
             },
           ),

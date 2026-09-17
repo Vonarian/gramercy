@@ -66,8 +66,9 @@ void main() {
       var filtered = container.read(filteredStringsProvider('units.csv'));
       expect(filtered.length, equals(3));
 
-      // 2. Query filter
+      // 2. Query filter (debounced)
       container.read(searchQueryProvider.notifier).setQuery('tiger');
+      await Future.delayed(const Duration(milliseconds: 160));
       filtered = container.read(filteredStringsProvider('units.csv'));
       expect(filtered.length, equals(1));
       expect(filtered.first.key, equals('germ_pzkpfw_VI_ausf_B_tiger_IIh'));

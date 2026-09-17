@@ -1,19 +1,16 @@
-import 'dart:io';
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gramercy/core/database/database.dart';
-import 'package:gramercy/core/logging/app_logger.dart';
 import 'package:gramercy/features/localization/models/localization_entry.dart';
 import 'package:gramercy/features/localization/providers/config_providers.dart';
+import 'package:gramercy/features/localization/providers/db_provider.dart';
 import 'package:gramercy/features/localization/providers/environment_providers.dart';
 import 'package:path/path.dart' as p;
 
 export 'package:gramercy/features/localization/models/localization_entry.dart';
 export 'package:gramercy/features/localization/providers/config_providers.dart';
+export 'package:gramercy/features/localization/providers/db_provider.dart';
 export 'package:gramercy/features/localization/providers/environment_providers.dart';
-
-final dbProvider = Provider<AppDatabase>((ref) {
-  throw UnimplementedError('dbProvider must be overridden in ProviderScope');
-});
+export 'package:gramercy/features/localization/providers/export_providers.dart';
 
 /// 1. Base Game Strings (Loaded via Worker isolate)
 final baseStringsProvider = FutureProvider.family<Map<String, String>, String>((ref, fileName) async {
@@ -24,6 +21,23 @@ final baseStringsProvider = FutureProvider.family<Map<String, String>, String>((
   return ref.watch(workerServiceProvider).loadBaseStrings(filePath);
 });
 
+/// Pre-indexed Base Entries (constructed once per file, avoids repeated allocations)
+final baseEntriesProvider = Provider.family<List<LocalizationEntry>, String>((ref, fileName) {
+  final base = ref.watch(baseStringsProvider(fileName)).value ?? {};
+  if (base.isEmpty) return const [];
+
+  return base.entries.map((e) {
+    return LocalizationEntry(
+      key: e.key,
+      value: e.value,
+      baseValue: e.value,
+      isOverridden: false,
+      lowerKey: e.key.toLowerCase(),
+      lowerValue: e.value.toLowerCase(),
+    );
+  }).toList(growable: false);
+});
+
 /// 2. User Overrides (Streamed directly from Drift SQLite)
 final overridesProvider = StreamProvider.family<Map<String, String>, String>((ref, fileName) {
   final db = ref.watch(dbProvider);
@@ -32,37 +46,45 @@ final overridesProvider = StreamProvider.family<Map<String, String>, String>((re
   });
 });
 
-/// 3. The Synthesized View (Immutable merge of Base + Drift Overrides)
+/// 3. The Synthesized View (Reuses base entries to eliminate 40,000 object allocations)
 final synthesizedStringsProvider = Provider.family<List<LocalizationEntry>, String>((ref, fileName) {
-  final base = ref.watch(baseStringsProvider(fileName)).value ?? {};
+  final baseEntries = ref.watch(baseEntriesProvider(fileName));
   final overrides = ref.watch(overridesProvider(fileName)).value ?? {};
 
+  if (overrides.isEmpty) return baseEntries;
+
   final List<LocalizationEntry> entries = [];
-  final Set<String> processedKeys = {};
+  final Set<String> overriddenHandled = {};
 
-  for (final entry in base.entries) {
-    final key = entry.key;
-    final baseVal = entry.value;
-    final isOverridden = overrides.containsKey(key);
-    final currentVal = isOverridden ? overrides[key]! : baseVal;
+  for (var i = 0; i < baseEntries.length; i++) {
+    final baseEntry = baseEntries[i];
+    final customVal = overrides[baseEntry.key];
 
-    entries.add(LocalizationEntry(
-      key: key,
-      value: currentVal,
-      baseValue: baseVal,
-      isOverridden: isOverridden,
-    ));
-    processedKeys.add(key);
+    if (customVal != null) {
+      overriddenHandled.add(baseEntry.key);
+      entries.add(LocalizationEntry(
+        key: baseEntry.key,
+        value: customVal,
+        baseValue: baseEntry.baseValue,
+        isOverridden: true,
+        lowerKey: baseEntry.lowerKey,
+        lowerValue: customVal.toLowerCase(),
+      ));
+    } else {
+      entries.add(baseEntry);
+    }
   }
 
-  for (final overrideEntry in overrides.entries) {
-    if (!processedKeys.contains(overrideEntry.key)) {
-      entries.add(LocalizationEntry(
-        key: overrideEntry.key,
-        value: overrideEntry.value,
-        baseValue: '',
-        isOverridden: true,
-      ));
+  if (overriddenHandled.length < overrides.length) {
+    for (final overrideEntry in overrides.entries) {
+      if (!overriddenHandled.contains(overrideEntry.key)) {
+        entries.add(LocalizationEntry(
+          key: overrideEntry.key,
+          value: overrideEntry.value,
+          baseValue: '',
+          isOverridden: true,
+        ));
+      }
     }
   }
 
@@ -70,9 +92,30 @@ final synthesizedStringsProvider = Provider.family<List<LocalizationEntry>, Stri
 });
 
 class SearchQueryNotifier extends Notifier<String> {
+  Timer? _timer;
+  static const debounceDelay = Duration(milliseconds: 150);
+
   @override
-  String build() => '';
-  void setQuery(String q) => state = q;
+  String build() {
+    ref.onDispose(() => _timer?.cancel());
+    return '';
+  }
+
+  void setQuery(String q, {bool immediate = false}) {
+    _timer?.cancel();
+    if (immediate || q.isEmpty) {
+      state = q;
+      return;
+    }
+    _timer = Timer(debounceDelay, () {
+      state = q;
+    });
+  }
+
+  void clear() {
+    _timer?.cancel();
+    state = '';
+  }
 }
 
 final searchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(SearchQueryNotifier.new);
@@ -85,107 +128,27 @@ class FilterModeNotifier extends Notifier<FilterMode> {
 
 final filterModeProvider = NotifierProvider<FilterModeNotifier, FilterMode>(FilterModeNotifier.new);
 
+/// High-performance filtering with fast-path and pre-indexed case-insensitive comparisons
 final filteredStringsProvider = Provider.family<List<LocalizationEntry>, String>((ref, fileName) {
   final allEntries = ref.watch(synthesizedStringsProvider(fileName));
   final query = ref.watch(searchQueryProvider).trim().toLowerCase();
   final filterMode = ref.watch(filterModeProvider);
 
-  return allEntries.where((entry) {
-    if (filterMode == FilterMode.overriddenOnly && !entry.isOverridden) {
-      return false;
-    }
-    if (filterMode == FilterMode.unmodifiedOnly && entry.isOverridden) {
-      return false;
-    }
-    if (query.isEmpty) return true;
-    return entry.key.toLowerCase().contains(query) ||
-        entry.value.toLowerCase().contains(query);
-  }).toList();
+  if (query.isEmpty && filterMode == FilterMode.all) {
+    return allEntries;
+  }
+
+  final results = <LocalizationEntry>[];
+  final matchOverridden = filterMode == FilterMode.overriddenOnly;
+  final matchUnmodified = filterMode == FilterMode.unmodifiedOnly;
+
+  for (var i = 0; i < allEntries.length; i++) {
+    final entry = allEntries[i];
+    if (matchOverridden && !entry.isOverridden) continue;
+    if (matchUnmodified && entry.isOverridden) continue;
+    if (query.isNotEmpty && !entry.matchesQuery(query)) continue;
+    results.add(entry);
+  }
+
+  return results;
 });
-
-class ExportNotifier extends Notifier<ExportState> {
-  @override
-  ExportState build() => const ExportState();
-
-  Future<bool> exportCurrentFile() async {
-    state = const ExportState(status: ExportStatus.inProgress, message: 'Deploying patches to game...');
-    final wtPath = ref.read(wtPathProvider);
-    final fileName = ref.read(selectedFileProvider);
-
-    if (wtPath == null || wtPath.isEmpty) {
-      state = const ExportState(status: ExportStatus.error, message: 'War Thunder install path is not set.');
-      return false;
-    }
-
-    try {
-      final db = ref.read(dbProvider);
-      final overridesList = await db.getOverridesForFile(fileName);
-      final overridesMap = {for (var o in overridesList) o.stringKey: o.customValue};
-
-      final worker = ref.read(workerServiceProvider);
-      final targetPath = p.join(wtPath, 'lang', fileName);
-
-      final configBlkPath = p.join(wtPath, 'config.blk');
-      if (File(configBlkPath).existsSync()) {
-        await worker.patchConfigBlk(configBlkPath);
-        ref.invalidate(configBlkStatusProvider);
-      }
-
-      await worker.exportPatchedCsv(
-        baseFilePath: targetPath,
-        targetFilePath: targetPath,
-        overrides: overridesMap,
-      );
-
-      ref.invalidate(baseStringsProvider(fileName));
-
-      AppLogger.instance.i('Deployed $fileName (${overridesMap.length} overrides)', tag: 'EXPORT');
-      state = ExportState(
-        status: ExportStatus.success,
-        message: 'Successfully deployed patches for $fileName to game!',
-      );
-      return true;
-    } catch (e, st) {
-      AppLogger.instance.e('Export failed for $fileName', tag: 'EXPORT', error: e, stack: st);
-      state = ExportState(status: ExportStatus.error, message: 'Export failed: $e');
-      return false;
-    }
-  }
-
-  void reset() => state = const ExportState();
-}
-
-final exportNotifierProvider = NotifierProvider<ExportNotifier, ExportState>(ExportNotifier.new);
-
-Future<void> saveLocalizationOverride({
-  required WidgetRef ref,
-  required String fileName,
-  required String key,
-  required String customValue,
-}) async {
-  final db = ref.read(dbProvider);
-  await db.saveOverride(
-    LocalizationsOverridesCompanion.insert(
-      fileName: fileName,
-      stringKey: key,
-      customValue: customValue,
-    ),
-  );
-
-  if (ref.read(autoExportProvider)) {
-    await ref.read(exportNotifierProvider.notifier).exportCurrentFile();
-  }
-}
-
-Future<void> revertLocalizationOverride({
-  required WidgetRef ref,
-  required String fileName,
-  required String key,
-}) async {
-  final db = ref.read(dbProvider);
-  await db.deleteOverride(fileName, key);
-
-  if (ref.read(autoExportProvider)) {
-    await ref.read(exportNotifierProvider.notifier).exportCurrentFile();
-  }
-}

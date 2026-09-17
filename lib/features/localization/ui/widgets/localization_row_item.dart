@@ -4,20 +4,22 @@ import 'package:gramercy/core/theme/app_theme.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
 import 'package:gramercy/features/localization/ui/edit_dialog.dart';
 
-class LocalizationRowItem extends ConsumerWidget {
+class LocalizationRowItem extends StatelessWidget {
   final String fileName;
   final LocalizationEntry entry;
   final int index;
+  final VoidCallback? onRevert;
 
   const LocalizationRowItem({
     super.key,
     required this.fileName,
     required this.entry,
     required this.index,
+    this.onRevert,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final isOverridden = entry.isOverridden;
     final rowBg = isOverridden
         ? AppTheme.emeraldGreen.withValues(alpha: 0.08)
@@ -43,9 +45,9 @@ class LocalizationRowItem extends ConsumerWidget {
             _buildValueColumn(),
             const SizedBox(width: 12),
             if (isOverridden) ...[
-              _buildModifiedBadge(),
+              const _ModifiedBadge(),
               const SizedBox(width: 8),
-              _buildRevertButton(ref),
+              _buildRevertButton(context),
             ],
             _buildEditButton(context),
           ],
@@ -99,7 +101,41 @@ class LocalizationRowItem extends ConsumerWidget {
     );
   }
 
-  Widget _buildModifiedBadge() {
+  Widget _buildRevertButton(BuildContext context) {
+    if (onRevert != null) {
+      return IconButton(
+        icon: const Icon(Icons.undo, size: 16, color: AppTheme.alertRed),
+        tooltip: 'Revert to Base Game',
+        onPressed: onRevert,
+      );
+    }
+    return Consumer(
+      builder: (context, ref, _) => IconButton(
+        icon: const Icon(Icons.undo, size: 16, color: AppTheme.alertRed),
+        tooltip: 'Revert to Base Game',
+        onPressed: () => revertLocalizationOverride(
+          ref: ref,
+          fileName: fileName,
+          key: entry.key,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditButton(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.edit_outlined, size: 16, color: AppTheme.textMuted),
+      tooltip: 'Edit Override',
+      onPressed: () => EditLocalizationDialog.show(context, fileName: fileName, entry: entry),
+    );
+  }
+}
+
+class _ModifiedBadge extends StatelessWidget {
+  const _ModifiedBadge();
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
@@ -109,24 +145,12 @@ class LocalizationRowItem extends ConsumerWidget {
       ),
       child: const Text(
         'MODIFIED',
-        style: TextStyle(color: AppTheme.emeraldGreen, fontSize: 10, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          color: AppTheme.emeraldGreen,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
       ),
-    );
-  }
-
-  Widget _buildRevertButton(WidgetRef ref) {
-    return IconButton(
-      icon: const Icon(Icons.undo, size: 16, color: AppTheme.alertRed),
-      tooltip: 'Revert to Base Game',
-      onPressed: () => revertLocalizationOverride(ref: ref, fileName: fileName, key: entry.key),
-    );
-  }
-
-  Widget _buildEditButton(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.edit_outlined, size: 16, color: AppTheme.textMuted),
-      tooltip: 'Edit Override',
-      onPressed: () => EditLocalizationDialog.show(context, fileName: fileName, entry: entry),
     );
   }
 }
