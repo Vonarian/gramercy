@@ -38,7 +38,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('WT LOCALIZATION ENGINE'), findsOneWidget);
+    expect(find.text('GRAMERCY'), findsOneWidget);
     expect(find.text('Deploy to Game'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
 
@@ -78,7 +78,8 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     // Verify rows rendered
     expect(find.text('us_m4a3_76w_sherman'), findsOneWidget);
