@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import '../logging/app_logger.dart';
 
 part 'database.g.dart';
 
@@ -39,8 +40,8 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // Upsert a patch on conflict with uniqueKeys [fileName, stringKey]
-  Future<void> saveOverride(LocalizationsOverridesCompanion entity) {
-    return into(localizationsOverrides).insert(
+  Future<void> saveOverride(LocalizationsOverridesCompanion entity) async {
+    await into(localizationsOverrides).insert(
       entity,
       onConflict: DoUpdate(
         (old) => LocalizationsOverridesCompanion(
@@ -53,19 +54,30 @@ class AppDatabase extends _$AppDatabase {
         ],
       ),
     );
+    AppLogger.instance.d(
+      'Saved override [${entity.fileName.value}] ${entity.stringKey.value} -> "${entity.customValue.value}"',
+      tag: 'DRIFT',
+    );
   }
 
   // Delete an override (revert to base game value)
-  Future<int> deleteOverride(String file, String stringKey) {
-    return (delete(localizationsOverrides)
+  Future<int> deleteOverride(String file, String stringKey) async {
+    final deleted = await (delete(localizationsOverrides)
           ..where((t) =>
               t.fileName.equals(file) & t.stringKey.equals(stringKey)))
         .go();
+    AppLogger.instance.i(
+      'Reverted override [$file] $stringKey (deleted: $deleted)',
+      tag: 'DRIFT',
+    );
+    return deleted;
   }
 
   // Clear all overrides for a file
-  Future<int> clearOverridesForFile(String file) {
-    return (delete(localizationsOverrides)..where((t) => t.fileName.equals(file))).go();
+  Future<int> clearOverridesForFile(String file) async {
+    final count = await (delete(localizationsOverrides)..where((t) => t.fileName.equals(file))).go();
+    AppLogger.instance.w('Cleared all $count overrides for file: $file', tag: 'DRIFT');
+    return count;
   }
 
   // Watch total count of overrides across all files
