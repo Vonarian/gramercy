@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:gramercy/core/isolates/config_blk_service.dart';
 import 'package:gramercy/core/isolates/csv_export_worker.dart';
 import 'package:gramercy/features/localization/models/localization_entry.dart';
@@ -103,11 +104,13 @@ class LocalizationWorkerService {
     required Map<String, String> overrides,
   }) {
     return workerManager.execute(
-      () => exportPatchedCsvWorker(ExportTaskParameters(
-        baseFilePath: baseFilePath,
-        targetFilePath: targetFilePath,
-        overrides: overrides,
-      )),
+      () => exportPatchedCsvWorker(
+        ExportTaskParameters(
+          baseFilePath: baseFilePath,
+          targetFilePath: targetFilePath,
+          overrides: overrides,
+        ),
+      ),
     );
   }
 
@@ -117,11 +120,13 @@ class LocalizationWorkerService {
     FilterMode filterMode = FilterMode.all,
   }) {
     return workerManager.execute(
-      () => filterEntriesWorker(FilterTaskParameters(
-        entries: entries,
-        query: query,
-        filterMode: filterMode,
-      )),
+      () => filterEntriesWorker(
+        FilterTaskParameters(
+          entries: entries,
+          query: query,
+          filterMode: filterMode,
+        ),
+      ),
     );
   }
 
@@ -132,8 +137,6 @@ class LocalizationWorkerService {
   }
 
   Future<bool> patchConfigBlk(String configBlkPath) {
-    return workerManager.execute(
-      () => patchConfigBlkWorker(configBlkPath),
-    );
+    return workerManager.execute(() => patchConfigBlkWorker(configBlkPath));
   }
 }

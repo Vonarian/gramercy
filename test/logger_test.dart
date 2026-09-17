@@ -15,7 +15,10 @@ void main() {
       expect(LogLevel.fromString('INFO'), LogLevel.info);
       expect(LogLevel.fromString('warning'), LogLevel.warning);
       expect(LogLevel.fromString('ERROR'), LogLevel.error);
-      expect(LogLevel.fromString('unknown', fallback: LogLevel.info), LogLevel.info);
+      expect(
+        LogLevel.fromString('unknown', fallback: LogLevel.info),
+        LogLevel.info,
+      );
     });
 
     test('LogEntry formatted line includes tag, level, message, and error', () {
@@ -40,10 +43,7 @@ void main() {
 
     setUp(() {
       logger = AppLogger(maxBufferSize: 3);
-      logger.configure(
-        minLevel: LogLevel.info,
-        consoleOutput: false,
-      );
+      logger.configure(minLevel: LogLevel.info, consoleOutput: false);
     });
 
     tearDown(() {

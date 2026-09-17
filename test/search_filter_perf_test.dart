@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gramercy/core/isolates/localization_worker.dart';
@@ -36,38 +37,44 @@ void main() {
       expect(container.read(searchQueryProvider), equals('tiger'));
     });
 
-    test('SearchQueryNotifier cancels prior timer on rapid keystrokes', () async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test(
+      'SearchQueryNotifier cancels prior timer on rapid keystrokes',
+      () async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      final notifier = container.read(searchQueryProvider.notifier);
+        final notifier = container.read(searchQueryProvider.notifier);
 
-      notifier.setQuery('s');
-      await Future.delayed(const Duration(milliseconds: 50));
-      notifier.setQuery('sh');
-      await Future.delayed(const Duration(milliseconds: 50));
-      notifier.setQuery('sher');
-      await Future.delayed(const Duration(milliseconds: 50));
-      notifier.setQuery('sherman');
+        notifier.setQuery('s');
+        await Future.delayed(const Duration(milliseconds: 50));
+        notifier.setQuery('sh');
+        await Future.delayed(const Duration(milliseconds: 50));
+        notifier.setQuery('sher');
+        await Future.delayed(const Duration(milliseconds: 50));
+        notifier.setQuery('sherman');
 
-      expect(container.read(searchQueryProvider), equals(''));
+        expect(container.read(searchQueryProvider), equals(''));
 
-      await Future.delayed(const Duration(milliseconds: 160));
-      expect(container.read(searchQueryProvider), equals('sherman'));
-    });
+        await Future.delayed(const Duration(milliseconds: 160));
+        expect(container.read(searchQueryProvider), equals('sherman'));
+      },
+    );
 
-    test('SearchQueryNotifier clears immediately on empty query or immediate flag', () async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test(
+      'SearchQueryNotifier clears immediately on empty query or immediate flag',
+      () async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      final notifier = container.read(searchQueryProvider.notifier);
+        final notifier = container.read(searchQueryProvider.notifier);
 
-      notifier.setQuery('panther', immediate: true);
-      expect(container.read(searchQueryProvider), equals('panther'));
+        notifier.setQuery('panther', immediate: true);
+        expect(container.read(searchQueryProvider), equals('panther'));
 
-      notifier.setQuery('');
-      expect(container.read(searchQueryProvider), equals(''));
-    });
+        notifier.setQuery('');
+        expect(container.read(searchQueryProvider), equals(''));
+      },
+    );
   });
 
   group('Large Dataset Synthesis & Filtering Performance Tests', () {
@@ -82,8 +89,10 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          baseStringsProvider('test.csv').overrideWith((ref) => Future.value(baseMap)),
-          overridesProvider('test.csv').overrideWith((ref) => overridesStreamController.stream),
+          baseStringsProvider('test.csv')
+              .overrideWith((ref) => Future.value(baseMap)),
+          overridesProvider('test.csv')
+              .overrideWith((ref) => overridesStreamController.stream),
         ],
       );
       addTearDown(container.dispose);
@@ -107,20 +116,25 @@ void main() {
 
       final unchangedFirst = firstPass.firstWhere((e) => e.key == 'key_0');
       final unchangedSecond = secondPass.firstWhere((e) => e.key == 'key_0');
-      expect(identical(unchangedFirst, unchangedSecond), isTrue,
-          reason: 'Unmodified entries must reuse the exact same LocalizationEntry instance');
+      expect(
+        identical(unchangedFirst, unchangedSecond),
+        isTrue,
+        reason: 'Unmodified entries must reuse the exact same LocalizationEntry instance',
+      );
     });
 
     test('filteredStringsProvider filters 40,000 items in < 50ms', () async {
       const count = 40000;
       final baseMap = <String, String>{
-        for (var i = 0; i < count; i++) 'ui_button_action_$i': 'Click button number $i to confirm',
+        for (var i = 0; i < count; i++)
+          'ui_button_action_$i': 'Click button number $i to confirm',
       };
       baseMap['ui_special_target'] = 'Unique special needle text';
 
       final container = ProviderContainer(
         overrides: [
-          baseStringsProvider('ui.csv').overrideWith((ref) => Future.value(baseMap)),
+          baseStringsProvider('ui.csv')
+              .overrideWith((ref) => Future.value(baseMap)),
           overridesProvider('ui.csv').overrideWith((ref) => Stream.value({})),
         ],
       );
@@ -133,13 +147,18 @@ void main() {
       expect(all.length, equals(count + 1));
 
       final stopwatch = Stopwatch()..start();
-      container.read(searchQueryProvider.notifier).setQuery('needle', immediate: true);
+      container
+          .read(searchQueryProvider.notifier)
+          .setQuery('needle', immediate: true);
       final results = container.read(filteredStringsProvider('ui.csv'));
       stopwatch.stop();
 
       expect(results.length, equals(1));
-      expect(stopwatch.elapsedMilliseconds, lessThan(100),
-          reason: 'Filtering 40,000 pre-indexed entries should take under 100ms even with coverage instrumentation');
+      expect(
+        stopwatch.elapsedMilliseconds,
+        lessThan(100),
+        reason: 'Filtering 40,000 pre-indexed entries should take under 100ms even with coverage instrumentation',
+      );
     });
   });
 
@@ -167,36 +186,41 @@ void main() {
       ];
 
       // 1. Filter by query
-      final queryFiltered = filterEntriesWorker(FilterTaskParameters(
-        entries: entries,
-        query: 'tiger',
-      ));
+      final queryFiltered = filterEntriesWorker(
+        FilterTaskParameters(entries: entries, query: 'tiger'),
+      );
       expect(queryFiltered.length, equals(1));
       expect(queryFiltered.first.key, equals('germ_tiger_ii'));
 
       // 2. Filter by overridden only
-      final overriddenFiltered = filterEntriesWorker(FilterTaskParameters(
-        entries: entries,
-        query: '',
-        filterMode: FilterMode.overriddenOnly,
-      ));
+      final overriddenFiltered = filterEntriesWorker(
+        FilterTaskParameters(
+          entries: entries,
+          query: '',
+          filterMode: FilterMode.overriddenOnly,
+        ),
+      );
       expect(overriddenFiltered.length, equals(1));
       expect(overriddenFiltered.first.key, equals('germ_tiger_ii'));
 
       // 3. Filter by unmodified only
-      final unmodifiedFiltered = filterEntriesWorker(FilterTaskParameters(
-        entries: entries,
-        query: '',
-        filterMode: FilterMode.unmodifiedOnly,
-      ));
+      final unmodifiedFiltered = filterEntriesWorker(
+        FilterTaskParameters(
+          entries: entries,
+          query: '',
+          filterMode: FilterMode.unmodifiedOnly,
+        ),
+      );
       expect(unmodifiedFiltered.length, equals(2));
 
       // 4. Empty query and all
-      final allFiltered = filterEntriesWorker(FilterTaskParameters(
-        entries: entries,
-        query: '',
-        filterMode: FilterMode.all,
-      ));
+      final allFiltered = filterEntriesWorker(
+        FilterTaskParameters(
+          entries: entries,
+          query: '',
+          filterMode: FilterMode.all,
+        ),
+      );
       expect(allFiltered.length, equals(3));
     });
   });

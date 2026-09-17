@@ -1,0 +1,155 @@
+name: Release - Multi-Platform Distribution
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag name (e.g. v1.2.0)'
+        required: true
+        default: 'v1.2.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Enable Windows Desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Windows Executable
+        run: flutter build windows --release
+
+      - name: Package Windows Bundle
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "gramercy-windows-x64.zip"
+
+      - name: Upload Windows Bundle Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gramercy-windows-x64
+          path: gramercy-windows-x64.zip
+
+  build-linux:
+    name: Build Linux Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Linux Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Enable Linux Desktop
+        run: flutter config --enable-linux-desktop
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Linux Binary
+        run: flutter build linux --release
+
+      - name: Package Linux Bundle
+        run: |
+          tar -czf gramercy-linux-x64.tar.gz -C build/linux/x64/release/bundle .
+
+      - name: Upload Linux Bundle Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gramercy-linux-x64
+          path: gramercy-linux-x64.tar.gz
+
+  build-macos:
+    name: Build macOS Release
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Enable macOS Desktop
+        run: flutter config --enable-macos-desktop
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build macOS App
+        run: flutter build macos --release
+
+      - name: Package macOS Bundle
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent build/macos/Build/Products/Release/gramercy.app gramercy-macos.zip
+
+      - name: Upload macOS Bundle Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gramercy-macos
+          path: gramercy-macos.zip
+
+  publish-release:
+    name: Create GitHub Release
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gramercy-windows-x64
+
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gramercy-linux-x64
+
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gramercy-macos
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name || inputs.tag }}
+          files: |
+            gramercy-windows-x64.zip
+            gramercy-linux-x64.tar.gz
+            gramercy-macos.zip
+          generate_release_notes: true

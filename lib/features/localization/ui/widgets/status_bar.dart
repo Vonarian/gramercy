@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/theme/app_theme.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
+
 import 'log_viewer_dialog.dart';
 
 class EditorStatusBar extends ConsumerWidget {
@@ -11,7 +12,9 @@ class EditorStatusBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final fileName = ref.watch(selectedFileProvider);
     final totalDbOverrides = ref.watch(dbProvider).watchTotalOverridesCount();
-    final fileOverrides = ref.watch(dbProvider).watchOverridesCountForFile(fileName);
+    final fileOverrides = ref
+        .watch(dbProvider)
+        .watchOverridesCountForFile(fileName);
 
     return Container(
       height: 28,
@@ -29,7 +32,10 @@ class EditorStatusBar extends ConsumerWidget {
                 final count = snapshot.data ?? 0;
                 return Text(
                   'Delta Vault: $count override(s) in $fileName',
-                  style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.textSecondary,
+                  ),
                 );
               },
             ),
@@ -40,7 +46,10 @@ class EditorStatusBar extends ConsumerWidget {
                 final total = snapshot.data ?? 0;
                 return Text(
                   '($total total across all files)',
-                  style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.textMuted,
+                  ),
                 );
               },
             ),
@@ -54,11 +63,18 @@ class EditorStatusBar extends ConsumerWidget {
               onTap: () => LogViewerDialog.show(context),
               child: const Row(
                 children: [
-                  Icon(Icons.terminal_rounded, size: 13, color: AppTheme.tacticalCyan),
+                  Icon(
+                    Icons.terminal_rounded,
+                    size: 13,
+                    color: AppTheme.tacticalCyan,
+                  ),
                   SizedBox(width: 4),
                   Text(
                     'Diagnostics',
-                    style: TextStyle(fontSize: 11, color: AppTheme.tacticalCyan),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.tacticalCyan,
+                    ),
                   ),
                 ],
               ),

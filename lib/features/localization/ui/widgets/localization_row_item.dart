@@ -26,7 +26,11 @@ class LocalizationRowItem extends StatelessWidget {
         : (index.isEven ? AppTheme.background : AppTheme.surface);
 
     return InkWell(
-      onTap: () => EditLocalizationDialog.show(context, fileName: fileName, entry: entry),
+      onTap: () => EditLocalizationDialog.show(
+        context,
+        fileName: fileName,
+        entry: entry,
+      ),
       child: Container(
         decoration: BoxDecoration(
           color: rowBg,
@@ -64,7 +68,9 @@ class LocalizationRowItem extends StatelessWidget {
           fontFamily: AppTheme.monospace.fontFamily,
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: entry.isOverridden ? AppTheme.primaryAmber : AppTheme.tacticalCyan,
+          color: entry.isOverridden
+              ? AppTheme.primaryAmber
+              : AppTheme.tacticalCyan,
         ),
       ),
     );
@@ -77,10 +83,7 @@ class LocalizationRowItem extends StatelessWidget {
         baseText,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          fontSize: 12,
-          color: AppTheme.textSecondary,
-        ),
+        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
       ),
     );
   }
@@ -120,11 +123,19 @@ class LocalizationRowItem extends StatelessWidget {
             _buildRevertButton(),
           ],
           IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 16, color: AppTheme.textMuted),
+            icon: const Icon(
+              Icons.edit_outlined,
+              size: 16,
+              color: AppTheme.textMuted,
+            ),
             tooltip: 'Edit Override',
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-            onPressed: () => EditLocalizationDialog.show(context, fileName: fileName, entry: entry),
+            onPressed: () => EditLocalizationDialog.show(
+              context,
+              fileName: fileName,
+              entry: entry,
+            ),
           ),
         ],
       ),

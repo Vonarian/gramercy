@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/logging/app_logger.dart';
 import '../../../core/logging/log_entry.dart';
 import 'config_providers.dart';
@@ -26,8 +28,9 @@ class LogLevelNotifier extends Notifier<LogLevel> {
   }
 }
 
-final logLevelNotifierProvider =
-    NotifierProvider<LogLevelNotifier, LogLevel>(LogLevelNotifier.new);
+final logLevelNotifierProvider = NotifierProvider<LogLevelNotifier, LogLevel>(
+  LogLevelNotifier.new,
+);
 
 class LogEntriesNotifier extends Notifier<List<LogEntry>> {
   StreamSubscription<LogEntry>? _sub;
@@ -54,7 +57,9 @@ class LogEntriesNotifier extends Notifier<List<LogEntry>> {
 }
 
 final logEntriesNotifierProvider =
-    NotifierProvider<LogEntriesNotifier, List<LogEntry>>(LogEntriesNotifier.new);
+    NotifierProvider<LogEntriesNotifier, List<LogEntry>>(
+      LogEntriesNotifier.new,
+    );
 
 class FileLoggingNotifier extends Notifier<bool> {
   @override
@@ -73,5 +78,6 @@ class FileLoggingNotifier extends Notifier<bool> {
   }
 }
 
-final fileLoggingNotifierProvider =
-    NotifierProvider<FileLoggingNotifier, bool>(FileLoggingNotifier.new);
+final fileLoggingNotifierProvider = NotifierProvider<FileLoggingNotifier, bool>(
+  FileLoggingNotifier.new,
+);

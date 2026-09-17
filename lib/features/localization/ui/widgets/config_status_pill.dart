@@ -29,12 +29,18 @@ class ConfigStatusPill extends ConsumerWidget {
             decoration: BoxDecoration(
               color: AppTheme.emeraldGreen.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: AppTheme.emeraldGreen.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppTheme.emeraldGreen.withValues(alpha: 0.3),
+              ),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.check_circle, color: AppTheme.emeraldGreen, size: 14),
+                Icon(
+                  Icons.check_circle,
+                  color: AppTheme.emeraldGreen,
+                  size: 14,
+                ),
                 SizedBox(width: 6),
                 Text(
                   'testLocalization: ACTIVE',
@@ -50,8 +56,15 @@ class ConfigStatusPill extends ConsumerWidget {
         }
         return OutlinedButton.icon(
           onPressed: () => patchConfigBlkHelper(ref),
-          icon: const Icon(Icons.warning_amber_rounded, color: AppTheme.primaryAmber, size: 14),
-          label: const Text('Enable in config.blk', style: TextStyle(color: AppTheme.primaryAmber, fontSize: 11)),
+          icon: const Icon(
+            Icons.warning_amber_rounded,
+            color: AppTheme.primaryAmber,
+            size: 14,
+          ),
+          label: const Text(
+            'Enable in config.blk',
+            style: TextStyle(color: AppTheme.primaryAmber, fontSize: 11),
+          ),
           style: OutlinedButton.styleFrom(
             side: const BorderSide(color: AppTheme.primaryAmber),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
