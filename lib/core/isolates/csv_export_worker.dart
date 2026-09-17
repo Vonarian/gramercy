@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:gramercy/core/isolates/localization_worker.dart';
 
 class ExportTaskParameters {
@@ -51,7 +52,8 @@ Future<bool> exportPatchedCsvWorker(ExportTaskParameters params) async {
         final key = cleanWtString(cols[0]);
         if (params.overrides.containsKey(key)) {
           final customVal = params.overrides[key]!;
-          final formattedVal = customVal.contains(';') || customVal.contains('"')
+          final formattedVal =
+              customVal.contains(';') || customVal.contains('"')
               ? '"${customVal.replaceAll('"', '""')}"'
               : customVal;
           if (cols.length > 1) {

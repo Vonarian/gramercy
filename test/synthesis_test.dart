@@ -4,41 +4,48 @@ import 'package:gramercy/features/localization/providers/localization_providers.
 
 void main() {
   group('Riverpod Localization Synthesis & Filter Tests', () {
-    test('synthesizedStringsProvider correctly merges base strings and overrides', () async {
-      final container = ProviderContainer(
-        overrides: [
-          baseStringsProvider('units.csv').overrideWith(
-            (ref) => Future.value({
-              'us_m4a3_76w_sherman': 'M4A3 (76) W',
-              'germ_pzkpfw_VI_ausf_B_tiger_IIh': 'Tiger II (H)',
-              'ussr_t_34_85_d_5t': 'T-34-85 (D-5T)',
-            }),
-          ),
-          overridesProvider('units.csv').overrideWith(
-            (ref) => Stream.fromIterable([
-              {'us_m4a3_76w_sherman': 'Easy Eight Sherman'},
-            ]),
-          ),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'synthesizedStringsProvider correctly merges base strings and overrides',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            baseStringsProvider('units.csv').overrideWith(
+              (ref) => Future.value({
+                'us_m4a3_76w_sherman': 'M4A3 (76) W',
+                'germ_pzkpfw_VI_ausf_B_tiger_IIh': 'Tiger II (H)',
+                'ussr_t_34_85_d_5t': 'T-34-85 (D-5T)',
+              }),
+            ),
+            overridesProvider('units.csv').overrideWith(
+              (ref) => Stream.fromIterable([
+                {'us_m4a3_76w_sherman': 'Easy Eight Sherman'},
+              ]),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      container.listen(synthesizedStringsProvider('units.csv'), (_, _) {});
-      await pumpEventQueue();
+        container.listen(synthesizedStringsProvider('units.csv'), (_, _) {});
+        await pumpEventQueue();
 
-      final entries = container.read(synthesizedStringsProvider('units.csv'));
+        final entries = container.read(synthesizedStringsProvider('units.csv'));
 
-      expect(entries.length, equals(3));
+        expect(entries.length, equals(3));
 
-      final sherman = entries.firstWhere((e) => e.key == 'us_m4a3_76w_sherman');
-      expect(sherman.isOverridden, isTrue);
-      expect(sherman.value, equals('Easy Eight Sherman'));
-      expect(sherman.baseValue, equals('M4A3 (76) W'));
+        final sherman = entries.firstWhere(
+          (e) => e.key == 'us_m4a3_76w_sherman',
+        );
+        expect(sherman.isOverridden, isTrue);
+        expect(sherman.value, equals('Easy Eight Sherman'));
+        expect(sherman.baseValue, equals('M4A3 (76) W'));
 
-      final tiger = entries.firstWhere((e) => e.key == 'germ_pzkpfw_VI_ausf_B_tiger_IIh');
-      expect(tiger.isOverridden, isFalse);
-      expect(tiger.value, equals('Tiger II (H)'));
-    });
+        final tiger = entries.firstWhere(
+          (e) => e.key == 'germ_pzkpfw_VI_ausf_B_tiger_IIh',
+        );
+        expect(tiger.isOverridden, isFalse);
+        expect(tiger.value, equals('Tiger II (H)'));
+      },
+    );
 
     test('filteredStringsProvider filters by query and filter mode', () async {
       final container = ProviderContainer(
@@ -75,7 +82,9 @@ void main() {
 
       // 3. Clear query, filter by modified only
       container.read(searchQueryProvider.notifier).setQuery('');
-      container.read(filterModeProvider.notifier).setMode(FilterMode.overriddenOnly);
+      container
+          .read(filterModeProvider.notifier)
+          .setMode(FilterMode.overriddenOnly);
       filtered = container.read(filteredStringsProvider('units.csv'));
       expect(filtered.length, equals(1));
       expect(filtered.first.key, equals('us_m4a3_76w_sherman'));

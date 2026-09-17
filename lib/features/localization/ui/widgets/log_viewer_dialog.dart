@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/logging/log_entry.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../providers/logging_providers.dart';
+import 'log_terminal_view.dart';
+import 'log_viewer_toolbar.dart';
 
 class LogViewerDialog extends ConsumerStatefulWidget {
   const LogViewerDialog({super.key});
@@ -44,9 +47,14 @@ class _LogViewerDialogState extends ConsumerState<LogViewerDialog> {
           children: [
             _buildHeader(context, activeLevel),
             const SizedBox(height: 12),
-            _buildToolbar(filtered),
+            LogViewerToolbar(
+              onSearchChanged: (q) => setState(() => _searchQuery = q),
+              onCopy: () => _copyLogs(filtered),
+              onClear: () =>
+                  ref.read(logEntriesNotifierProvider.notifier).clear(),
+            ),
             const SizedBox(height: 12),
-            Expanded(child: _buildLogTerminal(filtered)),
+            Expanded(child: LogTerminalView(entries: filtered)),
           ],
         ),
       ),
@@ -60,7 +68,8 @@ class _LogViewerDialogState extends ConsumerState<LogViewerDialog> {
       }
       if (_searchQuery.isNotEmpty) {
         final q = _searchQuery.toLowerCase();
-        return e.message.toLowerCase().contains(q) || e.tag.toLowerCase().contains(q);
+        return e.message.toLowerCase().contains(q) ||
+            e.tag.toLowerCase().contains(q);
       }
       return true;
     }).toList();
@@ -69,11 +78,19 @@ class _LogViewerDialogState extends ConsumerState<LogViewerDialog> {
   Widget _buildHeader(BuildContext context, LogLevel activeLevel) {
     return Row(
       children: [
-        const Icon(Icons.terminal_rounded, color: AppTheme.primaryAmber, size: 20),
+        const Icon(
+          Icons.terminal_rounded,
+          color: AppTheme.primaryAmber,
+          size: 20,
+        ),
         const SizedBox(width: 8),
         const Text(
           'DIAGNOSTICS CONSOLE',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
         ),
         const Spacer(),
         _buildLevelSelector(activeLevel),
@@ -102,7 +119,12 @@ class _LogViewerDialogState extends ConsumerState<LogViewerDialog> {
           style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary),
           items: LogLevel.values
               .where((l) => l != LogLevel.none)
-              .map((l) => DropdownMenuItem(value: l, child: Text('Min: ${l.name.toUpperCase()}')))
+              .map(
+                (l) => DropdownMenuItem(
+                  value: l,
+                  child: Text('Min: ${l.name.toUpperCase()}'),
+                ),
+              )
               .toList(),
           onChanged: (val) {
             if (val != null) {
@@ -114,82 +136,13 @@ class _LogViewerDialogState extends ConsumerState<LogViewerDialog> {
     );
   }
 
-  Widget _buildToolbar(List<LogEntry> filtered) {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            style: const TextStyle(fontSize: 12),
-            decoration: InputDecoration(
-              hintText: 'Filter log messages or tags...',
-              prefixIcon: const Icon(Icons.search, size: 16),
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(vertical: 8),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
-            ),
-            onChanged: (q) => setState(() => _searchQuery = q),
-          ),
-        ),
-        const SizedBox(width: 8),
-        OutlinedButton.icon(
-          icon: const Icon(Icons.copy, size: 14),
-          label: const Text('Copy'),
-          onPressed: () => _copyLogs(filtered),
-        ),
-        const SizedBox(width: 8),
-        OutlinedButton.icon(
-          icon: const Icon(Icons.delete_sweep, size: 14),
-          label: const Text('Clear'),
-          onPressed: () => ref.read(logEntriesNotifierProvider.notifier).clear(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLogTerminal(List<LogEntry> entries) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.background,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: ListView.builder(
-        itemCount: entries.length,
-        itemExtent: 26.0,
-        itemBuilder: (ctx, i) {
-          final e = entries[i];
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            child: Text(
-              e.toFormattedString(),
-              style: TextStyle(
-                fontFamily: 'Consolas',
-                fontSize: 11,
-                color: _levelColor(e.level),
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   void _copyLogs(List<LogEntry> entries) {
     final text = entries.map((e) => e.toFormattedString()).join('\n');
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Copied ${entries.length} log lines to clipboard')),
+      SnackBar(
+        content: Text('Copied ${entries.length} log lines to clipboard'),
+      ),
     );
-  }
-
-  Color _levelColor(LogLevel level) {
-    switch (level) {
-      case LogLevel.warning: return AppTheme.primaryAmber;
-      case LogLevel.error: return AppTheme.alertRed;
-      case LogLevel.info: return AppTheme.tacticalCyan;
-      default: return AppTheme.textSecondary;
-    }
   }
 }

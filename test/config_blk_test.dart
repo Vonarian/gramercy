@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gramercy/core/isolates/localization_worker.dart';
 
@@ -16,9 +17,11 @@ void main() {
   });
 
   group('config.blk Hook & Verifier Tests', () {
-    test('checkConfigBlkStatusWorker detects when testLocalization is enabled', () async {
-      final blkFile = File('${tempDir.path}/config.blk');
-      await blkFile.writeAsString('''
+    test(
+      'checkConfigBlkStatusWorker detects when testLocalization is enabled',
+      () async {
+        final blkFile = File('${tempDir.path}/config.blk');
+        await blkFile.writeAsString('''
 graphics {
   renderer:t="auto"
 }
@@ -28,10 +31,11 @@ debug {
 }
 ''');
 
-      final status = checkConfigBlkStatusWorker(blkFile.path);
-      expect(status.exists, isTrue);
-      expect(status.isLocalizationEnabled, isTrue);
-    });
+        final status = checkConfigBlkStatusWorker(blkFile.path);
+        expect(status.exists, isTrue);
+        expect(status.isLocalizationEnabled, isTrue);
+      },
+    );
 
     test('checkConfigBlkStatusWorker detects when testLocalization is missing or disabled', () async {
       final blkFile = File('${tempDir.path}/config.blk');
