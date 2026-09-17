@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/database/database.dart';
+import 'package:gramercy/core/logging/app_logger.dart';
+import 'package:gramercy/core/logging/log_entry.dart';
 import 'package:gramercy/core/services/preferences_service.dart';
 import 'package:gramercy/core/theme/app_theme.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
@@ -44,7 +46,14 @@ Future<void> main() async {
   final preferencesService = PreferencesService(sharedPreferences);
   final database = AppDatabase();
 
-  // 4. Run Application with Injected Dependencies
+  // 4. Configure Application Logging
+  AppLogger.instance.configure(
+    minLevel: LogLevel.fromString(preferencesService.logLevel),
+    fileOutput: preferencesService.enableFileLogging,
+  );
+  AppLogger.instance.i('War Thunder Localization Editor booted');
+
+  // 5. Run Application with Injected Dependencies
   runApp(
     ProviderScope(
       overrides: [
