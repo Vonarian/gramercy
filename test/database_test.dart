@@ -88,5 +88,139 @@ void main() {
 
       await expectation;
     });
+
+    test('getAllOverrides retrieves all overrides across all files', () async {
+      await db.saveOverride(
+        LocalizationsOverridesCompanion.insert(
+          fileName: 'units.csv',
+          stringKey: 'tank_1',
+          customValue: 'Tank One',
+        ),
+      );
+      await db.saveOverride(
+        LocalizationsOverridesCompanion.insert(
+          fileName: 'ui.csv',
+          stringKey: 'btn_ok',
+          customValue: 'Affirmative',
+        ),
+      );
+
+      final all = await db.getAllOverrides();
+      expect(all.length, equals(2));
+      expect(
+        all.map((e) => e.stringKey).toSet(),
+        containsAll(['tank_1', 'btn_ok']),
+      );
+    });
+
+    test(
+      'batchUpsertOverrides inserts or updates multiple items in a batch',
+      () async {
+        await db.saveOverride(
+          LocalizationsOverridesCompanion.insert(
+            fileName: 'units.csv',
+            stringKey: 'tank_1',
+            customValue: 'Tank Old',
+          ),
+        );
+
+        final count = await db.batchUpsertOverrides([
+          LocalizationsOverridesCompanion.insert(
+            fileName: 'units.csv',
+            stringKey: 'tank_1',
+            customValue: 'Tank Updated',
+          ),
+          LocalizationsOverridesCompanion.insert(
+            fileName: 'units.csv',
+            stringKey: 'tank_2',
+            customValue: 'Tank New',
+          ),
+        ]);
+
+        expect(count, equals(2));
+        final overrides = await db.getAllOverrides();
+        expect(overrides.length, equals(2));
+        final tank1 = overrides.firstWhere((e) => e.stringKey == 'tank_1');
+        expect(tank1.customValue, equals('Tank Updated'));
+        final tank2 = overrides.firstWhere((e) => e.stringKey == 'tank_2');
+        expect(tank2.customValue, equals('Tank New'));
+      },
+    );
+
+    test(
+      'clearOverridesForFile deletes all overrides for a given file',
+      () async {
+        await db.saveOverride(
+          LocalizationsOverridesCompanion.insert(
+            fileName: 'units.csv',
+            stringKey: 'tank_1',
+            customValue: 'Tank 1',
+          ),
+        );
+        await db.saveOverride(
+          LocalizationsOverridesCompanion.insert(
+            fileName: 'units.csv',
+            stringKey: 'tank_2',
+            customValue: 'Tank 2',
+          ),
+        );
+        await db.saveOverride(
+          LocalizationsOverridesCompanion.insert(
+            fileName: 'ui.csv',
+            stringKey: 'btn_ok',
+            customValue: 'OK',
+          ),
+        );
+
+        final deleted = await db.clearOverridesForFile('units.csv');
+        expect(deleted, equals(2));
+
+        final remainingUnits = await db.getOverridesForFile('units.csv');
+        expect(remainingUnits.isEmpty, isTrue);
+
+        final remainingUi = await db.getOverridesForFile('ui.csv');
+        expect(remainingUi.length, equals(1));
+      },
+    );
+
+    test(
+      'watchTotalOverridesCount and watchOverridesCountForFile stream counts',
+      () async {
+        final totalStream = db.watchTotalOverridesCount();
+        final fileStream = db.watchOverridesCountForFile('units.csv');
+
+        final totalExpectation = expectLater(
+          totalStream,
+          emitsInOrder([0, 1, 2]),
+        );
+        final fileExpectation = expectLater(
+          fileStream,
+          emitsInOrder([0, 1, 1]),
+        );
+
+        await pumpEventQueue();
+
+        await db.saveOverride(
+          LocalizationsOverridesCompanion.insert(
+            fileName: 'units.csv',
+            stringKey: 'k1',
+            customValue: 'v1',
+          ),
+        );
+        await pumpEventQueue();
+
+        await db.saveOverride(
+          LocalizationsOverridesCompanion.insert(
+            fileName: 'ui.csv',
+            stringKey: 'k2',
+            customValue: 'v2',
+          ),
+        );
+        await pumpEventQueue();
+
+        await totalExpectation;
+        await fileExpectation;
+      },
+    );
   });
 }
