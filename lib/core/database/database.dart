@@ -40,6 +40,28 @@ class AppDatabase extends _$AppDatabase {
     )..where((t) => t.fileName.equals(file))).get();
   }
 
+  // Future list of all overrides across all files (for preset export)
+  Future<List<LocalizationsOverride>> getAllOverrides() {
+    return select(localizationsOverrides).get();
+  }
+
+  // Batch upsert multiple overrides in a single transaction
+  Future<int> batchUpsertOverrides(
+    List<LocalizationsOverridesCompanion> entries,
+  ) async {
+    if (entries.isEmpty) return 0;
+    await transaction(() async {
+      for (final entry in entries) {
+        await saveOverride(entry);
+      }
+    });
+    AppLogger.instance.i(
+      'Batch upserted ${entries.length} overrides',
+      tag: 'DRIFT',
+    );
+    return entries.length;
+  }
+
   // Upsert a patch on conflict with uniqueKeys [fileName, stringKey]
   Future<void> saveOverride(LocalizationsOverridesCompanion entity) async {
     await into(localizationsOverrides).insert(
