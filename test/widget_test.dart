@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gramercy/core/database/database.dart';
 import 'package:gramercy/core/services/preferences_service.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
+import 'package:gramercy/features/localization/ui/widgets/about_gramercy_dialog.dart';
 import 'package:gramercy/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -102,6 +103,73 @@ void main() {
       // Verify Scrollbar configuration and that scroll controller is attached
       final scrollbar = tester.widget<Scrollbar>(find.byType(Scrollbar));
       expect(scrollbar.controller, equals(listView.controller));
+
+      await db.close();
+    },
+  );
+
+  testWidgets(
+    'AboutGramercyDialog opens on info click and displays BEAC safety card',
+    (tester) async {
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final prefsService = PreferencesService(prefs);
+      final db = AppDatabase(NativeDatabase.memory());
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            dbProvider.overrideWithValue(db),
+            prefsProvider.overrideWithValue(prefsService),
+          ],
+          child: const WarThunderEditorApp(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Find and tap the info/about button
+      final aboutButton = find.byTooltip('About & BattlEye Safety');
+      expect(aboutButton, findsOneWidget);
+      await tester.tap(aboutButton);
+      await tester.pumpAndSettle();
+
+      // Verify dialog content
+      final dialog = find.byType(AboutGramercyDialog);
+      expect(dialog, findsOneWidget);
+      expect(
+        find.descendant(of: dialog, matching: find.text('Gramercy Cockpit')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.text('100% BattlEye Anti-Cheat (BEAC) Safe'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.textContaining('testLocalization:b=yes'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: dialog, matching: find.textContaining('[T-4-6]')),
+        findsOneWidget,
+      );
+
+      // Tap close
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AboutGramercyDialog), findsNothing);
 
       await db.close();
     },
