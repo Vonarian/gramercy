@@ -64,10 +64,10 @@ class LocalizationRowItem extends StatelessWidget {
         entry.key,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontFamily: AppTheme.monospace.fontFamily,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+        style: AppTheme.monospace.copyWith(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w500,
+          letterSpacing: -0.2,
           color: entry.isOverridden
               ? AppTheme.primaryAmber
               : AppTheme.tacticalCyan,
@@ -83,7 +83,11 @@ class LocalizationRowItem extends StatelessWidget {
         baseText,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w400,
+          color: AppTheme.textSecondary,
+        ),
       ),
     );
   }
@@ -93,7 +97,7 @@ class LocalizationRowItem extends StatelessWidget {
       return const Expanded(
         child: Text(
           '—',
-          style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+          style: TextStyle(fontSize: 13, color: AppTheme.textMuted),
         ),
       );
     }
@@ -103,7 +107,7 @@ class LocalizationRowItem extends StatelessWidget {
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: FontWeight.w600,
           color: AppTheme.textPrimary,
         ),
