@@ -20,8 +20,9 @@ class AppTheme {
   static const Color textMuted = Color(0xFF64748B);
 
   static const TextStyle monospace = TextStyle(
-    fontFamily: 'Consolas',
+    fontFamily: 'JetBrainsMono',
     fontFamilyFallback: [
+      'Consolas',
       'SF Mono',
       'Menlo',
       'Monaco',
@@ -48,8 +49,9 @@ class AppTheme {
       brightness: Brightness.dark,
       scaffoldBackgroundColor: background,
       colorScheme: colorScheme,
-      fontFamily: 'Segoe UI',
+      fontFamily: 'Inter',
       fontFamilyFallback: const [
+        'Segoe UI',
         'SF Pro Text',
         'Ubuntu',
         'Roboto',
