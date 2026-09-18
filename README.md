@@ -10,7 +10,8 @@
   [![Drift](https://img.shields.io/badge/Storage-Drift%20SQLite-003B57)](https://drift.simonbinder.eu)
   [![Anti--Cheat](https://img.shields.io/badge/Anti--Cheat-100%25%20BattlEye%20Safe-success)](https://warthunder.com)
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-  [![Tests](https://img.shields.io/badge/Tests-39%20Passed-brightgreen)](test/)
+  [![Tests](https://img.shields.io/badge/Tests-42%20Passed-brightgreen)](test/)
+  [![Release](https://img.shields.io/badge/Release-v1.2.1-blue)](https://github.com/Vonarian/gramercy/releases)
   [![Platforms](https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux%20%7C%20macOS-blue)](https://flutter.dev)
 </div>
 
@@ -152,14 +153,28 @@ flowchart TD
 
 ---
 
-## 8. Getting Started
+## 8. Download & Installation
+
+### Pre-Built Desktop Binaries
+
+Download the ready-to-run package for your platform from the **[Latest Release](https://github.com/Vonarian/gramercy/releases/latest)**:
+
+| Platform | Package Archive | Quick Start |
+| :--- | :--- | :--- |
+| **Windows** (10 / 11 x64) | `gramercy-windows-x64.zip` | Extract archive, open folder, and run `gramercy.exe`. *(See [SmartScreen Advisory](#6-windows-smartscreen-advisory))* |
+| **Linux** (x64) | `gramercy-linux-x64.tar.gz` | Extract with `tar -xzf gramercy-linux-x64.tar.gz` and run `./gramercy`. |
+| **macOS** (Universal) | `gramercy-macos.zip` | Extract archive and move `gramercy.app` to your Applications folder. |
+
+---
+
+## 9. Building from Source
 
 ### Prerequisites
 - **Operating Systems**: Windows 10/11 (x64, primary), Linux (x64), or macOS (Apple Silicon & Intel)
 - **War Thunder**: Installed via Steam or Gaijin Standalone Launcher
 - **Flutter SDK**: `>= 3.24.0` (with desktop enabled)
 
-### Building from Source
+### Build Instructions
 
 1. **Clone the repository:**
    ```bash
@@ -184,7 +199,7 @@ flowchart TD
 
 ---
 
-## 9. Quality Assurance & AGENTS.md Standards
+## 10. Quality Assurance & AGENTS.md Standards
 
 Gramercy is maintained under strict engineering constraints:
 - **Test-Driven Development**: 100% test pass with $\ge 80\%$ line coverage on domain, DAOs, and state providers.
@@ -204,6 +219,6 @@ flutter test --coverage
 
 ---
 
-## 10. License
+## 11. License
 
 Distributed under the terms of the **GNU General Public License v3.0**. See [`LICENSE`](LICENSE) for details.
