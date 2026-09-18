@@ -63,7 +63,7 @@ class AboutGramercyDialog extends StatelessWidget {
                 ),
               ),
               Text(
-                'v1.2.0 • War Thunder Custom Localization Engine',
+                'v1.2.1 • War Thunder Custom Localization Engine',
                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
               ),
             ],
