@@ -3,7 +3,7 @@
 <div align="center">
   <img src="assets/images/app_logo.png" alt="Gramercy Logo" width="120" />
   <h3>War Thunder Localization Cockpit & Community Delta Vault</h3>
-  <p><em>"Gramercy!" &mdash; War Thunder Radio Command [T-4-6] ("Thank you!")</em></p>
+  <p><em>"Gramercy!" &mdash; War Thunder Radio Command [T-3-4] ("Thank you!")</em></p>
 
   [![Flutter](https://img.shields.io/badge/Flutter-3.24+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
   [![Riverpod](https://img.shields.io/badge/State-Riverpod%203-0553B1)](https://riverpod.dev)
