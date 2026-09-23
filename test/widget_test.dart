@@ -6,6 +6,7 @@ import 'package:gramercy/core/database/database.dart';
 import 'package:gramercy/core/services/preferences_service.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
 import 'package:gramercy/features/localization/ui/widgets/about_gramercy_dialog.dart';
+import 'package:gramercy/features/localization/ui/widgets/rebuild_dialog.dart';
 import 'package:gramercy/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -170,6 +171,77 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(AboutGramercyDialog), findsNothing);
+
+      await db.close();
+    },
+  );
+
+  testWidgets(
+    'RebuildDialog opens on rebuild click and renders 3-step wizard',
+    (tester) async {
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final prefsService = PreferencesService(prefs);
+      final db = AppDatabase(NativeDatabase.memory());
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            dbProvider.overrideWithValue(db),
+            prefsProvider.overrideWithValue(prefsService),
+          ],
+          child: const WarThunderEditorApp(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      final rebuildBtn = find.byTooltip('Rebuild Game Strings (Game Update)');
+      expect(rebuildBtn, findsOneWidget);
+      await tester.tap(rebuildBtn);
+      await tester.pumpAndSettle();
+
+      final dialog = find.byType(RebuildDialog);
+      expect(dialog, findsOneWidget);
+
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.text('Rebuild Game Strings'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.text('Step 1: Purge Localization Cache'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.text('Step 2: Generate Fresh Strings'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.text('Step 3: Reload & Apply Customizations'),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RebuildDialog), findsNothing);
 
       await db.close();
     },
