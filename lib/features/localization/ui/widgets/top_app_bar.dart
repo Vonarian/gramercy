@@ -7,6 +7,7 @@ import 'package:gramercy/features/localization/ui/widgets/config_status_pill.dar
 import 'package:gramercy/features/localization/ui/widgets/log_viewer_dialog.dart';
 import 'package:gramercy/features/localization/ui/widgets/path_indicator.dart';
 import 'package:gramercy/features/localization/ui/widgets/presets_menu_button.dart';
+import 'package:gramercy/features/localization/ui/widgets/rebuild_button.dart';
 
 class TopAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const TopAppBar({super.key});
@@ -39,6 +40,8 @@ class TopAppBar extends ConsumerWidget implements PreferredSizeWidget {
           _buildDeployButton(ref, exportState),
           const SizedBox(width: 8),
           const PresetsMenuButton(),
+          const SizedBox(width: 4),
+          const RebuildButton(),
           const SizedBox(width: 4),
           _buildLogButton(context),
           const SizedBox(width: 4),

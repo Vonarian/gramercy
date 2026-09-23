@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2026-09-23
+
+### Added
+- **In-App Rebuild Game Strings Workflow**: Added `RebuildService`, `RebuildDialog`, and `RebuildButton` to streamline surviving major War Thunder updates.
+  - **Step 1: Automated Cache Purge**: Safely wipes old CSVs and stale `.orig` backups in `<War Thunder>/lang/` and verifies `testLocalization:b=yes` in `config.blk`.
+  - **Step 2: Generation & Live Detection**: Launches War Thunder to extract fresh CSVs and automatically polls/detects when new patch strings appear on disk.
+  - **Step 3: 1-Click Reload & Deploy**: Invalidates the in-memory cache to ingest new game strings and re-stamps all active custom overrides from SQLite without restarting Gramercy.
+- **Top App Bar Integration**: Mounted the new rebuild button directly into the desktop command header.
+
+---
+
 ## [1.2.1] - 2026-09-18
 
 ### Added
