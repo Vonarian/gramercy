@@ -10,8 +10,8 @@
   [![Drift](https://img.shields.io/badge/Storage-Drift%20SQLite-003B57)](https://drift.simonbinder.eu)
   [![Anti--Cheat](https://img.shields.io/badge/Anti--Cheat-100%25%20BattlEye%20Safe-success)](https://warthunder.com)
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-  [![Tests](https://img.shields.io/badge/Tests-42%20Passed-brightgreen)](test/)
-  [![Release](https://img.shields.io/badge/Release-v1.2.1-blue)](https://github.com/Vonarian/gramercy/releases)
+  [![Tests](https://img.shields.io/badge/Tests-47%20Passed-brightgreen)](test/)
+  [![Release](https://img.shields.io/badge/Release-v1.3.0-blue)](https://github.com/Vonarian/gramercy/releases)
   [![Platforms](https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux%20%7C%20macOS-blue)](https://flutter.dev)
 </div>
 
@@ -66,11 +66,12 @@ Traditional localization modding involves manually editing raw `.csv` files insi
 
 When War Thunder releases a major update (e.g. *Alpha Strike*, *Dance of Dragons*, *Fire-Seekers*), the game introduces new vehicles, weapons, and strings. If you were using raw edited CSV files, the game would crash or fail to load new text.
 
-With **Gramercy**, surviving updates takes seconds:
-1. **Launch War Thunder launcher** and download the game update.
-2. (Optional) Delete the `<War Thunder>/lang` folder if Gaijin modified base string layouts; launch the game once to allow War Thunder to generate the latest pristine CSVs.
-3. **Open Gramercy** &mdash; your custom modifications are safely preserved in the Delta Vault.
-4. Click **Deploy to Game** (or let **Auto-Deploy** do it). All your custom vehicle names and historical tweaks are instantly stamped onto the new update!
+With **Gramercy**, surviving updates takes 1 click directly in the app:
+1. **Download the Game Update** in the War Thunder launcher.
+2. In Gramercy's top bar, click the **Rebuild Game Strings** icon (`Sync` button).
+3. **Step 1: Click "Purge Cache"** &mdash; Gramercy cleans out old CSVs and stale `.orig` files while ensuring `config.blk` has `testLocalization:b=yes`.
+4. **Step 2: Launch War Thunder once** (via the in-app "Launch War Thunder" button) to the hangar. Gramercy live-detects when the game finishes dumping the fresh CSVs.
+5. **Step 3: Click "Reload & Apply"** &mdash; Gramercy reloads the fresh game strings and instantly stamps all your preserved customizations from SQLite onto the update!
 
 ---
 
