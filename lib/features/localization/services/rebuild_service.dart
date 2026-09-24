@@ -5,12 +5,22 @@ import 'package:gramercy/core/isolates/config_blk_service.dart';
 import 'package:gramercy/core/logging/app_logger.dart';
 import 'package:gramercy/features/localization/models/rebuild_models.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
+import 'package:gramercy/features/localization/services/backup_service.dart';
+import 'package:gramercy/features/localization/services/game_process_service.dart';
 import 'package:path/path.dart' as p;
 
 export 'package:gramercy/features/localization/models/rebuild_models.dart';
+export 'package:gramercy/features/localization/services/backup_service.dart';
+export 'package:gramercy/features/localization/services/game_process_service.dart';
 
 class RebuildService {
-  const RebuildService();
+  final BackupService backupService;
+  final GameProcessService gameProcessService;
+
+  const RebuildService({
+    this.backupService = const BackupService(),
+    this.gameProcessService = const GameProcessService(),
+  });
 
   Future<PurgeResult> purgeLocalizationCache(String wtPath) async {
     if (wtPath.isEmpty) {
@@ -31,11 +41,15 @@ class RebuildService {
         return const PurgeResult(success: true, deletedCount: 0);
       }
 
+      final backupPath = await backupService.backupLocalizationFolder(wtPath);
       var deleted = 0;
-      await for (final entity in langDir.list()) {
+      await for (final entity in langDir.list(recursive: false)) {
         if (entity is File) {
           final lower = entity.path.toLowerCase();
-          if (lower.endsWith('.csv') || lower.endsWith('.orig')) {
+          final base = p.basename(lower);
+          if (lower.endsWith('.csv') ||
+              lower.endsWith('.orig') ||
+              base == 'localization.blk') {
             await entity.delete();
             deleted++;
           }
@@ -46,7 +60,11 @@ class RebuildService {
         'Purged $deleted localization files from ${langDir.path}',
         tag: 'REBUILD',
       );
-      return PurgeResult(success: true, deletedCount: deleted);
+      return PurgeResult(
+        success: true,
+        deletedCount: deleted,
+        backupPath: backupPath,
+      );
     } catch (e, st) {
       AppLogger.instance.e(
         'Failed to purge localization cache',
@@ -72,7 +90,7 @@ class RebuildService {
     var count = 0;
 
     try {
-      await for (final entity in langDir.list()) {
+      await for (final entity in langDir.list(recursive: false)) {
         if (entity is File && entity.path.toLowerCase().endsWith('.csv')) {
           if (await entity.length() > 0) {
             count++;
@@ -89,50 +107,10 @@ class RebuildService {
     );
   }
 
-  Future<bool> launchWarThunder(String wtPath) async {
-    try {
-      if (Platform.isWindows) {
-        final launcher = File(p.join(wtPath, 'launcher.exe'));
-        final aces = File(p.join(wtPath, 'win64', 'aces.exe'));
-        final acesRoot = File(p.join(wtPath, 'aces.exe'));
+  Future<bool> isGameRunning() => gameProcessService.isGameRunning();
 
-        if (await launcher.exists()) {
-          await Process.start(
-            launcher.path,
-            [],
-            mode: ProcessStartMode.detached,
-          );
-          return true;
-        } else if (await aces.exists()) {
-          await Process.start(aces.path, [], mode: ProcessStartMode.detached);
-          return true;
-        } else if (await acesRoot.exists()) {
-          await Process.start(
-            acesRoot.path,
-            [],
-            mode: ProcessStartMode.detached,
-          );
-          return true;
-        } else {
-          await Process.run('cmd', ['/c', 'start', 'steam://rungameid/236390']);
-          return true;
-        }
-      } else if (Platform.isLinux) {
-        await Process.run('xdg-open', ['steam://rungameid/236390']);
-        return true;
-      } else if (Platform.isMacOS) {
-        await Process.run('open', ['steam://rungameid/236390']);
-        return true;
-      }
-      return false;
-    } catch (e) {
-      AppLogger.instance.w(
-        'Could not auto-launch War Thunder: $e',
-        tag: 'REBUILD',
-      );
-      return false;
-    }
-  }
+  Future<bool> launchWarThunder(String wtPath) =>
+      gameProcessService.launchWarThunder(wtPath);
 
   Future<RebuildSummary> reloadAndSynthesize({
     required WidgetRef ref,

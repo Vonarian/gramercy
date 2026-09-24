@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.1] - 2026-09-24
+
+### Fixed
+- **Complete Cache Purge (`localization.blk` Removal)**: Fixed an issue where `purgeLocalizationCache` only deleted `.csv` and `.orig` files while preserving `localization.blk`. Because War Thunder's Dagor engine uses `localization.blk` as the sentinel for an already-initialized localization directory, the game skipped generating fresh files. Purge now cleanly removes `localization.blk` as well.
+- **Safety Auto-Backup (`BackupService`)**: Added automated timestamped backup of all files in `<War Thunder>/lang/` into `<War Thunder>/lang_backups/backup_<timestamp>` prior to executing any purge, preventing accidental loss of local files.
+- **Game Running Guard & Confirmation Modal (`PurgeConfirmDialog`)**: Added interactive confirmation modal before purging with live `isGameRunning` process detection (`GameProcessService`). Warns players if War Thunder (`aces.exe`) is actively running and guides them to close the game before purging to prevent file lock and shutdown rewrite conflicts.
+- **Modularity & Architecture Refactor**: Decomposed `rebuild_dialog.dart` and `purge_confirm_dialog.dart` into granular widgets (`purge_safety_cards.dart`, `rebuild_dialog_cards.dart`) adhering strictly to the $\le 200$ LoC constraint.
+
+---
+
 ## [1.3.0] - 2026-09-23
 
 ### Added
