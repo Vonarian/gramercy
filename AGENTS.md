@@ -164,4 +164,16 @@ Before submitting a PR or marking a task complete, verify every requirement:
   * [ ] Every Flutter `build()` method ≤ 50 lines.
   * [ ] Every test file ≤ 400 lines.
 * [ ] **Commit Format**: All commit messages follow the Conventional Commits specification.
-* [ ] **Integration Confirmed on `dev`**: Branch merged/rebased to `dev` and verified clean prior to the `main` release PR.
+* [ ] **Integration Confirmed on `dev`**: Branch merged/rebased to `dev` and verified clean prior to the `main` release PR.
+* [ ] **Agent Skills Hygiene**: Customizations and skills are kept exclusively under `.agents/skills/` (no duplicate `.agent/`, `.gemini/`, or unignored `.impeccable/` artifacts).
+
+---
+
+## 7. Agent Skills & Design Tooling (`.agents/`)
+
+* **Single Source of Truth**: All workspace agent skills, runbooks, and configurations must reside exclusively under `.agents/skills/` (e.g., `.agents/skills/impeccable/`). Never create or duplicate skill directories in `.agent/`, `.gemini/`, or root tool folders.
+* **Impeccable UI/UX Tooling**:
+  * Use the `impeccable` skill (`.agents/skills/impeccable/SKILL.md`) for frontend design critique, visual hierarchy audit, typography, layout polishing, and styling workflows.
+  * Execute bundled CLI tools and scripts directly via `.agents/skills/impeccable/scripts/...`.
+* **Runtime Hygiene**: Runtime state, caches, and local configurations (such as `.impeccable/`) must stay gitignored and never committed to version control.
+
