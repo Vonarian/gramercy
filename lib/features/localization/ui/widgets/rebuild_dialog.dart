@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/theme/app_theme.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
 import 'package:gramercy/features/localization/services/rebuild_service.dart';
+import 'package:gramercy/features/localization/ui/widgets/purge_confirm_dialog.dart';
+import 'package:gramercy/features/localization/ui/widgets/rebuild_dialog_cards.dart';
 import 'package:gramercy/features/localization/ui/widgets/rebuild_step_card.dart';
 
 class RebuildDialog extends ConsumerStatefulWidget {
@@ -49,10 +51,18 @@ class _RebuildDialogState extends ConsumerState<RebuildDialog> {
 
       final service = ref.read(rebuildServiceProvider);
       final status = await service.checkFreshStringsExist(wtPath);
-      if (mounted) {
-        setState(() => _freshStatus = status);
-      }
+      if (mounted) setState(() => _freshStatus = status);
     });
+  }
+
+  void _confirmAndPurge(BuildContext context, String wtPath) {
+    showDialog(
+      context: context,
+      builder: (_) => PurgeConfirmDialog(
+        wtPath: wtPath,
+        onConfirmed: () => _handlePurge(wtPath),
+      ),
+    );
   }
 
   Future<void> _handlePurge(String wtPath) async {
@@ -68,7 +78,7 @@ class _RebuildDialogState extends ConsumerState<RebuildDialog> {
       _isPurging = false;
       _isPurged = res.success;
       _purgeMessage = res.success
-          ? 'Purged ${res.deletedCount} files. config.blk verified.'
+          ? 'Purged ${res.deletedCount} files (backup saved).'
           : 'Error: ${res.errorMessage}';
     });
   }
@@ -116,96 +126,36 @@ class _RebuildDialogState extends ConsumerState<RebuildDialog> {
           children: [
             const RebuildDialogHeader(),
             const SizedBox(height: 16),
-            _buildStep1Purge(wtPath),
+            RebuildStep1Card(
+              isPurging: _isPurging,
+              isPurged: _isPurged,
+              purgeMessage: _purgeMessage,
+              onPurgeTap: () => _confirmAndPurge(context, wtPath),
+            ),
             const SizedBox(height: 12),
-            _buildStep2Generate(wtPath),
+            RebuildStep2Card(
+              isLaunching: _isLaunching,
+              hasFiles: _freshStatus.hasFiles,
+              fileCount: _freshStatus.fileCount,
+              onLaunchTap: () => _handleLaunch(wtPath),
+            ),
             const SizedBox(height: 12),
-            _buildStep3Deploy(wtPath),
+            RebuildStep3Card(
+              isReloading: _isReloading,
+              canReload: _freshStatus.hasFiles && !_isReloading,
+              rebuildMessage: _rebuildMessage,
+              onReloadTap: () => _handleReload(wtPath),
+            ),
             const SizedBox(height: 16),
-            _buildFooterActions(),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildStep1Purge(String wtPath) {
-    return RebuildStepCard(
-      title: 'Step 1: Purge Localization Cache',
-      subtitle: 'Deletes old CSVs and stale .orig files; enables config.blk.',
-      action: ElevatedButton.icon(
-        onPressed: _isPurging ? null : () => _handlePurge(wtPath),
-        icon: _isPurging
-            ? const SizedBox(
-                width: 14,
-                height: 14,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : const Icon(Icons.delete_sweep, size: 16),
-        label: Text(_isPurged ? 'Purge Again' : 'Purge Cache'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.surfaceElevated,
-          foregroundColor: AppTheme.primaryAmber,
-        ),
-      ),
-      statusText: _purgeMessage,
-      isSuccess: _isPurged,
-    );
-  }
-
-  Widget _buildStep2Generate(String wtPath) {
-    final detected = _freshStatus.hasFiles;
-    return RebuildStepCard(
-      title: 'Step 2: Generate Fresh Strings',
-      subtitle: 'Launch War Thunder to the hangar once to extract new CSVs.',
-      action: ElevatedButton.icon(
-        onPressed: _isLaunching ? null : () => _handleLaunch(wtPath),
-        icon: const Icon(Icons.play_arrow, size: 16),
-        label: Text(_isLaunching ? 'Launching...' : 'Launch War Thunder'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.surfaceElevated,
-          foregroundColor: AppTheme.tacticalCyan,
-        ),
-      ),
-      statusText: detected
-          ? 'Fresh strings detected (${_freshStatus.fileCount} CSV files)'
-          : 'Waiting for fresh CSVs... (launch game to hangar)',
-      isSuccess: detected,
-    );
-  }
-
-  Widget _buildStep3Deploy(String wtPath) {
-    final canReload = _freshStatus.hasFiles && !_isReloading;
-    return RebuildStepCard(
-      title: 'Step 3: Reload & Apply Customizations',
-      subtitle:
-          'Re-synthesizes all your saved delta overrides with new game files.',
-      action: ElevatedButton.icon(
-        onPressed: canReload ? () => _handleReload(wtPath) : null,
-        icon: _isReloading
-            ? const SizedBox(
-                width: 14,
-                height: 14,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : const Icon(Icons.check_circle_outline, size: 16),
-        label: const Text('Reload & Apply'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryAmber,
-          foregroundColor: Colors.black,
-        ),
-      ),
-      statusText: _rebuildMessage,
-      isSuccess: _rebuildMessage?.startsWith('Done') ?? false,
-    );
-  }
-
-  Widget _buildFooterActions() {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: TextButton(
-        onPressed: () => Navigator.of(context).pop(),
-        child: const Text('Close'),
       ),
     );
   }
