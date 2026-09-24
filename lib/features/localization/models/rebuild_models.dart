@@ -1,11 +1,13 @@
 class PurgeResult {
   final bool success;
   final int deletedCount;
+  final String? backupPath;
   final String? errorMessage;
 
   const PurgeResult({
     required this.success,
     this.deletedCount = 0,
+    this.backupPath,
     this.errorMessage,
   });
 }
