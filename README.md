@@ -10,8 +10,8 @@
   [![Drift](https://img.shields.io/badge/Storage-Drift%20SQLite-003B57)](https://drift.simonbinder.eu)
   [![Anti--Cheat](https://img.shields.io/badge/Anti--Cheat-100%25%20BattlEye%20Safe-success)](https://warthunder.com)
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-  [![Tests](https://img.shields.io/badge/Tests-47%20Passed-brightgreen)](test/)
-  [![Release](https://img.shields.io/badge/Release-v1.3.0-blue)](https://github.com/Vonarian/gramercy/releases)
+  [![Tests](https://img.shields.io/badge/Tests-50%20Passed-brightgreen)](test/)
+  [![Release](https://img.shields.io/badge/Release-v1.3.1-blue)](https://github.com/Vonarian/gramercy/releases)
   [![Platforms](https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux%20%7C%20macOS-blue)](https://flutter.dev)
 </div>
 
@@ -69,7 +69,7 @@ When War Thunder releases a major update (e.g. *Alpha Strike*, *Dance of Dragons
 With **Gramercy**, surviving updates takes 1 click directly in the app:
 1. **Download the Game Update** in the War Thunder launcher.
 2. In Gramercy's top bar, click the **Rebuild Game Strings** icon (`Sync` button).
-3. **Step 1: Click "Purge Cache"** &mdash; Gramercy cleans out old CSVs and stale `.orig` files while ensuring `config.blk` has `testLocalization:b=yes`.
+3. **Step 1: Click "Purge Cache"** &mdash; Gramercy checks if the game is closed, creates an automatic safety backup of `lang/` to `lang_backups/`, cleanly purges `lang/` (including `localization.blk` and old CSVs), and verifies `testLocalization:b=yes` in `config.blk`.
 4. **Step 2: Launch War Thunder once** (via the in-app "Launch War Thunder" button) to the hangar. Gramercy live-detects when the game finishes dumping the fresh CSVs.
 5. **Step 3: Click "Reload & Apply"** &mdash; Gramercy reloads the fresh game strings and instantly stamps all your preserved customizations from SQLite onto the update!
 
