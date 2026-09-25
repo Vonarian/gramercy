@@ -53,9 +53,11 @@ class GameRunningStatus extends StatelessWidget {
         children: [
           Icon(Icons.check_circle, color: AppTheme.emeraldGreen, size: 16),
           SizedBox(width: 6),
-          Text(
-            'War Thunder is closed. Ready to purge safely.',
-            style: TextStyle(fontSize: 12, color: AppTheme.emeraldGreen),
+          Expanded(
+            child: Text(
+              'War Thunder is closed. Ready to purge safely.',
+              style: TextStyle(fontSize: 12, color: AppTheme.emeraldGreen),
+            ),
           ),
         ],
       );

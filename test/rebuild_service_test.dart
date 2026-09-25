@@ -86,6 +86,47 @@ void main() {
       expect(status.fileCount, equals(2));
       expect(status.keyFilesFound, contains('units.csv'));
     });
+
+    test(
+      'checkFreshStringsExist with since parameter ignores older files',
+      () async {
+        final unitsCsv = File('${langDir.path}/units.csv');
+        await unitsCsv.writeAsString('<ID>;<English>\ntank_t90;T-90A');
+
+        // Check with a future since threshold
+        final futureSince = DateTime.now().add(const Duration(minutes: 5));
+        final statusFuture = await service.checkFreshStringsExist(
+          tempDir.path,
+          since: futureSince,
+        );
+        expect(statusFuture.hasFiles, isFalse);
+        expect(statusFuture.fileCount, equals(0));
+
+        // Check with a past since threshold
+        final pastSince = DateTime.now().subtract(const Duration(minutes: 5));
+        final statusPast = await service.checkFreshStringsExist(
+          tempDir.path,
+          since: pastSince,
+        );
+        expect(statusPast.hasFiles, isTrue);
+        expect(statusPast.fileCount, equals(1));
+      },
+    );
+
+    test(
+      'purgeLocalizationCache records purgedAt and verifies no remaining files',
+      () async {
+        final unitsCsv = File('${langDir.path}/units.csv');
+        await unitsCsv.writeAsString('test');
+        final blkFile = File('${langDir.path}/localization.blk');
+        await blkFile.writeAsString('test');
+
+        final result = await service.purgeLocalizationCache(tempDir.path);
+        expect(result.success, isTrue);
+        expect(result.purgedAt, isNotNull);
+        expect(result.remainingFiles, isEmpty);
+      },
+    );
   });
 
   group('BackupService Tests', () {

@@ -19,6 +19,7 @@ class RebuildDialog extends ConsumerStatefulWidget {
 class _RebuildDialogState extends ConsumerState<RebuildDialog> {
   bool _isPurging = false;
   bool _isPurged = false;
+  DateTime? _purgedAt;
   String? _purgeMessage;
 
   bool _isLaunching = false;
@@ -46,12 +47,16 @@ class _RebuildDialogState extends ConsumerState<RebuildDialog> {
   void _startDetectionPolling() {
     _detectTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
       if (!mounted) return;
+      if (!_isPurged || _purgedAt == null) return;
       final wtPath = ref.read(wtPathProvider);
       if (wtPath == null || wtPath.isEmpty) return;
 
       final service = ref.read(rebuildServiceProvider);
-      final status = await service.checkFreshStringsExist(wtPath);
-      if (mounted) setState(() => _freshStatus = status);
+      final status = await service.checkFreshStringsExist(
+        wtPath,
+        since: _purgedAt,
+      );
+      if (mounted && _isPurged) setState(() => _freshStatus = status);
     });
   }
 
@@ -69,6 +74,7 @@ class _RebuildDialogState extends ConsumerState<RebuildDialog> {
     setState(() {
       _isPurging = true;
       _purgeMessage = null;
+      _freshStatus = const FreshStringsStatus(hasFiles: false, fileCount: 0);
     });
     final service = ref.read(rebuildServiceProvider);
     final res = await service.purgeLocalizationCache(wtPath);
@@ -77,6 +83,7 @@ class _RebuildDialogState extends ConsumerState<RebuildDialog> {
     setState(() {
       _isPurging = false;
       _isPurged = res.success;
+      _purgedAt = res.purgedAt;
       _purgeMessage = res.success
           ? 'Purged ${res.deletedCount} files (backup saved).'
           : 'Error: ${res.errorMessage}';
@@ -120,41 +127,44 @@ class _RebuildDialogState extends ConsumerState<RebuildDialog> {
       child: Container(
         constraints: const BoxConstraints(maxWidth: 580),
         padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const RebuildDialogHeader(),
-            const SizedBox(height: 16),
-            RebuildStep1Card(
-              isPurging: _isPurging,
-              isPurged: _isPurged,
-              purgeMessage: _purgeMessage,
-              onPurgeTap: () => _confirmAndPurge(context, wtPath),
-            ),
-            const SizedBox(height: 12),
-            RebuildStep2Card(
-              isLaunching: _isLaunching,
-              hasFiles: _freshStatus.hasFiles,
-              fileCount: _freshStatus.fileCount,
-              onLaunchTap: () => _handleLaunch(wtPath),
-            ),
-            const SizedBox(height: 12),
-            RebuildStep3Card(
-              isReloading: _isReloading,
-              canReload: _freshStatus.hasFiles && !_isReloading,
-              rebuildMessage: _rebuildMessage,
-              onReloadTap: () => _handleReload(wtPath),
-            ),
-            const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const RebuildDialogHeader(),
+              const SizedBox(height: 16),
+              RebuildStep1Card(
+                isPurging: _isPurging,
+                isPurged: _isPurged,
+                purgeMessage: _purgeMessage,
+                onPurgeTap: () => _confirmAndPurge(context, wtPath),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              RebuildStep2Card(
+                isLaunching: _isLaunching,
+                isPurged: _isPurged,
+                hasFiles: _freshStatus.hasFiles,
+                fileCount: _freshStatus.fileCount,
+                onLaunchTap: () => _handleLaunch(wtPath),
+              ),
+              const SizedBox(height: 12),
+              RebuildStep3Card(
+                isReloading: _isReloading,
+                canReload: _isPurged && _freshStatus.hasFiles && !_isReloading,
+                rebuildMessage: _rebuildMessage,
+                onReloadTap: () => _handleReload(wtPath),
+              ),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Close'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
