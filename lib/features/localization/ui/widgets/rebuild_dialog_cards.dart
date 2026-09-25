@@ -44,6 +44,7 @@ class RebuildStep1Card extends StatelessWidget {
 
 class RebuildStep2Card extends StatelessWidget {
   final bool isLaunching;
+  final bool isPurged;
   final bool hasFiles;
   final int fileCount;
   final VoidCallback onLaunchTap;
@@ -51,6 +52,7 @@ class RebuildStep2Card extends StatelessWidget {
   const RebuildStep2Card({
     super.key,
     required this.isLaunching,
+    this.isPurged = false,
     required this.hasFiles,
     required this.fileCount,
     required this.onLaunchTap,
@@ -58,11 +60,19 @@ class RebuildStep2Card extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statusText = !isPurged
+        ? 'Awaiting Step 1 cache purge...'
+        : (hasFiles
+              ? 'Fresh strings detected ($fileCount CSV files)'
+              : 'Waiting for fresh CSVs... (launch game to hangar)');
+
     return RebuildStepCard(
       title: 'Step 2: Generate Fresh Strings',
-      subtitle: 'Launch War Thunder to the hangar once to extract new CSVs.',
+      subtitle: isPurged
+          ? 'Launch War Thunder to the hangar once to extract new CSVs.'
+          : 'Complete Step 1 cache purge first.',
       action: ElevatedButton.icon(
-        onPressed: isLaunching ? null : onLaunchTap,
+        onPressed: (isLaunching || !isPurged) ? null : onLaunchTap,
         icon: const Icon(Icons.play_arrow, size: 16),
         label: Text(isLaunching ? 'Launching...' : 'Launch War Thunder'),
         style: ElevatedButton.styleFrom(
@@ -70,10 +80,8 @@ class RebuildStep2Card extends StatelessWidget {
           foregroundColor: AppTheme.tacticalCyan,
         ),
       ),
-      statusText: hasFiles
-          ? 'Fresh strings detected ($fileCount CSV files)'
-          : 'Waiting for fresh CSVs... (launch game to hangar)',
-      isSuccess: hasFiles,
+      statusText: statusText,
+      isSuccess: isPurged && hasFiles,
     );
   }
 }
