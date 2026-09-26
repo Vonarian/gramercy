@@ -1,0 +1,1587 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Gramercy - Beat-Synced Showcase</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: 'Syne';
+        src: url('assets/fonts/Syne-Bold.ttf') format('truetype');
+        font-weight: 700 800;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: 'InstrumentSerif';
+        src: url('assets/fonts/InstrumentSerif-Italic.ttf') format('truetype');
+        font-weight: 400;
+        font-style: italic;
+      }
+      @font-face {
+        font-family: 'Inter';
+        src: url('assets/fonts/Inter-Bold.ttf') format('truetype');
+        font-weight: 700;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: 'Inter';
+        src: url('assets/fonts/Inter-Regular.ttf') format('truetype');
+        font-weight: 400;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: 'JetBrainsMono';
+        src: url('assets/fonts/JetBrainsMono-Bold.ttf') format('truetype');
+        font-weight: 700;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: 'JetBrainsMono';
+        src: url('assets/fonts/JetBrainsMono-Regular.ttf') format('truetype');
+        font-weight: 400;
+        font-style: normal;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html, body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #08090C;
+        color: #F8FAFC;
+        font-family: 'Inter', system-ui, sans-serif;
+      }
+
+      #root {
+        width: 1920px;
+        height: 1080px;
+        position: relative;
+        overflow: hidden;
+        background: #08090C;
+      }
+
+      /* CRT Scanline Overlay */
+      .crt-overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 90;
+        opacity: 0.16;
+        background: 
+          repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.25) 0px, rgba(0, 0, 0, 0.25) 1px, transparent 1px, transparent 3px);
+      }
+
+      /* ========================================================
+         PERSISTENT CAMERA / VIEWFINDER HUD
+         ======================================================== */
+      .hud-frame {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 100;
+        font-family: 'JetBrainsMono', monospace;
+      }
+
+      .hud-bracket {
+        position: absolute;
+        width: 28px;
+        height: 28px;
+      }
+      .bracket-tl {
+        top: 36px;
+        left: 48px;
+        border-top: 2px solid rgba(255, 255, 255, 0.45);
+        border-left: 2px solid rgba(255, 255, 255, 0.45);
+      }
+      .bracket-tr {
+        top: 36px;
+        right: 48px;
+        border-top: 2px solid rgba(255, 255, 255, 0.45);
+        border-right: 2px solid rgba(255, 255, 255, 0.45);
+      }
+      .bracket-bl {
+        bottom: 36px;
+        left: 48px;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.45);
+        border-left: 2px solid rgba(255, 255, 255, 0.45);
+      }
+      .bracket-br {
+        bottom: 36px;
+        right: 48px;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.45);
+        border-right: 2px solid rgba(255, 255, 255, 0.45);
+      }
+
+      .hud-header {
+        position: absolute;
+        top: 40px;
+        left: 88px;
+        right: 88px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        letter-spacing: 0.14em;
+        color: #F8FAFC;
+        text-transform: uppercase;
+      }
+
+      .hud-footer {
+        position: absolute;
+        bottom: 38px;
+        left: 88px;
+        right: 88px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 32px;
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        color: #F8FAFC;
+      }
+
+      .hud-timeline {
+        flex: 1;
+        position: relative;
+        height: 12px;
+        display: flex;
+        align-items: center;
+      }
+
+      .hud-timeline-track {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .hud-timeline-fill {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 0%;
+        background: #FACC15;
+      }
+
+      .hud-timeline-ticks {
+        position: absolute;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .hud-tick {
+        width: 1px;
+        height: 7px;
+        background: rgba(255, 255, 255, 0.35);
+        transform: translateY(-3px);
+      }
+
+      /* ========================================================
+         SCENE CONTAINERS
+         ======================================================== */
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* --------------------------------------------------------
+         SCENE 0: INTRO (0.0s - 1.0s)
+         -------------------------------------------------------- */
+      #scene-0 {
+        background: #08090C;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .s0-grid {
+        position: absolute;
+        inset: 0;
+        background-image: 
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 80px 80px;
+      }
+      .s0-crosshair {
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+      .s0-beam {
+        position: absolute;
+        width: 3px;
+        height: 180px;
+        background: linear-gradient(180deg, transparent, #FFFFFF);
+        box-shadow: 0 0 20px #FFFFFF, 0 0 40px #F59E0B;
+        top: -200px;
+      }
+      .s0-flash {
+        position: absolute;
+        inset: 0;
+        background: #FFFFFF;
+        opacity: 0;
+        z-index: 50;
+      }
+
+      /* --------------------------------------------------------
+         SCENE 1: THE CONFLICT (1.0s - 2.0s) - Vermilion
+         -------------------------------------------------------- */
+      #scene-1 {
+        background: #FF3213;
+        color: #08090C;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .s1-header-tag {
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 14px;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: rgba(0, 0, 0, 0.65);
+        margin-bottom: 12px;
+      }
+      .s1-title {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 165px;
+        line-height: 0.92;
+        letter-spacing: -0.04em;
+        color: #08090C;
+        text-transform: uppercase;
+        text-align: center;
+      }
+      .s1-subtitle {
+        font-family: 'InstrumentSerif', serif;
+        font-style: italic;
+        font-size: 58px;
+        color: #08090C;
+        margin-top: 14px;
+        letter-spacing: -0.01em;
+      }
+      .s1-alert-banner {
+        position: absolute;
+        bottom: 120px;
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 13px;
+        letter-spacing: 0.2em;
+        padding: 8px 20px;
+        background: rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(0, 0, 0, 0.4);
+        border-radius: 4px;
+        text-transform: uppercase;
+        color: #08090C;
+      }
+
+      /* --------------------------------------------------------
+         KINETIC BEAT RAPID FIRE (2.0s - 4.0s)
+         -------------------------------------------------------- */
+      .scene-kinetic {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      .kinetic-word {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 210px;
+        line-height: 0.88;
+        letter-spacing: -0.04em;
+        text-transform: uppercase;
+      }
+      .kinetic-sub {
+        font-family: 'InstrumentSerif', serif;
+        font-style: italic;
+        font-size: 48px;
+        margin-top: 20px;
+        letter-spacing: -0.01em;
+      }
+
+      /* Beat 1: Cream (2.0s - 2.5s) */
+      #scene-k1 {
+        background: #F4EFE6;
+        color: #111317;
+      }
+      /* Beat 2: Dark (2.5s - 3.0s) */
+      #scene-k2 {
+        background: #08090C;
+        color: #F8FAFC;
+      }
+      /* Beat 3: Cobalt (3.0s - 3.5s) */
+      #scene-k3 {
+        background: #1435F5;
+        color: #FFFFFF;
+      }
+      /* Beat 4: Vermilion (3.5s - 4.0s) */
+      #scene-k4 {
+        background: #FF3213;
+        color: #08090C;
+      }
+
+      /* --------------------------------------------------------
+         SCENE 2: 50,000+ STRINGS & DELTA VAULT (4.0s - 6.0s) - Dark
+         -------------------------------------------------------- */
+      #scene-2 {
+        background: #08090C;
+        color: #F8FAFC;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        padding: 95px 120px;
+        position: relative;
+      }
+      .s2-top-bar {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        padding-bottom: 14px;
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 13px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: #94A3B8;
+      }
+      .s2-center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .s2-counter-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(56, 189, 248, 0.1);
+        border: 1px solid rgba(56, 189, 248, 0.4);
+        padding: 6px 20px;
+        border-radius: 999px;
+        margin-bottom: 18px;
+      }
+      .s2-delta-symbol {
+        font-family: 'InstrumentSerif', serif;
+        font-style: italic;
+        font-size: 22px;
+        color: #38BDF8;
+      }
+      .s2-badge-text {
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 12px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: #7DD3FC;
+      }
+      .s2-vault-title {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 130px;
+        letter-spacing: -0.04em;
+        line-height: 0.92;
+        text-transform: uppercase;
+        color: #F8FAFC;
+      }
+      .s2-vault-title span {
+        color: #38BDF8;
+      }
+      .s2-vault-subtitle {
+        font-family: 'InstrumentSerif', serif;
+        font-style: italic;
+        font-size: 38px;
+        color: #94A3B8;
+        margin-top: 14px;
+        letter-spacing: -0.01em;
+      }
+      .s2-pills {
+        margin-top: 28px;
+        display: flex;
+        gap: 16px;
+      }
+      .s2-pill {
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        padding: 8px 20px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+        text-transform: uppercase;
+        color: #E2E8F0;
+      }
+      .s2-bottom-bar {
+        width: 100%;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        padding-top: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+      }
+      .s2-bottom-left {
+        font-family: 'JetBrainsMono', monospace;
+        font-weight: 500;
+        font-size: 13px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #38BDF8;
+      }
+      .s2-bottom-right {
+        font-family: 'InstrumentSerif', serif;
+        font-style: italic;
+        font-size: 26px;
+        color: #94A3B8;
+      }
+
+      /* --------------------------------------------------------
+         SCENE 3: LIVE COCKPIT SHOWCASE (6.0s - 8.0s) - Bass Drop!
+         -------------------------------------------------------- */
+      #scene-3 {
+        background: #090C11;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 85px 80px 85px 90px;
+      }
+      .s3-cockpit-stage {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        perspective: 1200px;
+      }
+      .s3-window-wrapper {
+        position: relative;
+        transform: rotateY(-7deg) rotateX(3deg);
+        box-shadow: 0 35px 80px rgba(0, 0, 0, 0.8), 0 0 50px rgba(56, 189, 248, 0.2);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(56, 189, 248, 0.35);
+      }
+      .s3-screenshot {
+        width: 1160px;
+        height: auto;
+        display: block;
+      }
+      .s3-callout {
+        position: absolute;
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        padding: 6px 14px;
+        border-radius: 4px;
+        z-index: 20;
+        pointer-events: none;
+      }
+      .callout-deploy {
+        top: 24px;
+        right: 40px;
+        background: rgba(245, 158, 11, 0.25);
+        border: 1px solid #F59E0B;
+        color: #FCD34D;
+      }
+      .callout-active {
+        top: 24px;
+        left: 40px;
+        background: rgba(16, 185, 129, 0.25);
+        border: 1px solid #10B981;
+        color: #6EE7B7;
+      }
+      .callout-override {
+        top: 155px;
+        left: 560px;
+        background: rgba(56, 189, 248, 0.25);
+        border: 1px solid #38BDF8;
+        color: #BAE6FD;
+      }
+      .callout-virt {
+        bottom: 28px;
+        left: 36px;
+        background: rgba(147, 51, 234, 0.3);
+        border: 1px solid #A855F7;
+        color: #E9D5FF;
+      }
+      .s3-reticle {
+        position: absolute;
+        top: 20px;
+        right: 130px;
+        width: 32px;
+        height: 32px;
+        border: 2px solid #EF4444;
+        border-radius: 50%;
+        opacity: 0;
+        transform: scale(2);
+        z-index: 30;
+      }
+
+      /* Sidebar Telemetry */
+      .s3-sidebar {
+        width: 360px;
+        margin-left: 45px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        z-index: 20;
+      }
+      .s3-card {
+        background: #121720;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        padding: 20px;
+      }
+      .s3-card-title {
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 12px;
+        color: #94A3B8;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 8px;
+      }
+      .s3-stat-row {
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 12px;
+        line-height: 2;
+        color: #CBD5E1;
+        display: flex;
+        justify-content: space-between;
+      }
+      .s3-stat-val {
+        color: #38BDF8;
+        font-weight: 700;
+      }
+      .s3-highlight-box {
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 6px;
+        padding: 14px 16px;
+        font-family: 'InstrumentSerif', serif;
+        font-style: italic;
+        font-size: 20px;
+        color: #FDE68A;
+        line-height: 1.35;
+      }
+
+      /* --------------------------------------------------------
+         SCENE 4: 1-CLICK UPDATE SURVIVAL (8.0s - 10.0s)
+         -------------------------------------------------------- */
+      #scene-4 {
+        background: #06130E;
+        color: #F8FAFC;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 100px 120px;
+        text-align: center;
+      }
+      .s4-header-tag {
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 13px;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: #34D399;
+        margin-bottom: 10px;
+      }
+      .s4-title {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 88px;
+        letter-spacing: -0.03em;
+        text-transform: uppercase;
+        line-height: 1.0;
+        color: #F8FAFC;
+      }
+      .s4-subtitle {
+        font-family: 'InstrumentSerif', serif;
+        font-style: italic;
+        font-size: 38px;
+        color: #6EE7B7;
+        margin-top: 10px;
+        margin-bottom: 40px;
+      }
+      .s4-pipeline {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        margin-bottom: 40px;
+      }
+      .s4-step {
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 8px;
+        padding: 22px 28px;
+        width: 320px;
+        text-align: left;
+      }
+      .s4-step-num {
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        color: #34D399;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+      .s4-step-title {
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        text-transform: uppercase;
+        color: #F8FAFC;
+        margin-bottom: 4px;
+      }
+      .s4-step-desc {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        color: #94A3B8;
+      }
+      .s4-arrow {
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 32px;
+        color: #10B981;
+      }
+      .s4-seal {
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 14px;
+        letter-spacing: 0.18em;
+        padding: 10px 24px;
+        border-radius: 6px;
+        background: rgba(16, 185, 129, 0.15);
+        border: 1px solid #10B981;
+        color: #6EE7B7;
+        text-transform: uppercase;
+      }
+
+      /* --------------------------------------------------------
+         SCENE 5: 100% BATTLEYE SAFE (10.0s - 12.0s)
+         -------------------------------------------------------- */
+      #scene-5 {
+        background: #090B0F;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .s5-shield-icon {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        border: 2px solid #10B981;
+        background: rgba(16, 185, 129, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+      }
+      .s5-shield-icon svg {
+        width: 48px;
+        height: 48px;
+        fill: #10B981;
+      }
+      .s5-title {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 96px;
+        letter-spacing: -0.03em;
+        text-transform: uppercase;
+        color: #F8FAFC;
+        text-align: center;
+      }
+      .s5-subtitle {
+        font-family: 'InstrumentSerif', serif;
+        font-style: italic;
+        font-size: 44px;
+        color: #10B981;
+        margin-top: 10px;
+        letter-spacing: -0.01em;
+      }
+      .s5-pills {
+        display: flex;
+        gap: 16px;
+        margin-top: 36px;
+      }
+      .s5-pill {
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 13px;
+        letter-spacing: 0.14em;
+        padding: 8px 18px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: #E2E8F0;
+        text-transform: uppercase;
+      }
+
+      /* --------------------------------------------------------
+         SCENE 6: CORE ENGINE BLITZ (12.0s - 13.0s)
+         -------------------------------------------------------- */
+      #scene-6 {
+        background: #ECE7DC;
+        color: #0E1015;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .s6-rewind-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 42px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        margin-bottom: 40px;
+      }
+      .s6-cards {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+      }
+      .s6-card {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 54px;
+        text-transform: uppercase;
+        letter-spacing: -0.02em;
+        padding: 4px 24px;
+        border: 2px solid #0E1015;
+      }
+
+      /* --------------------------------------------------------
+         SCENE 7: HERO FINALE (13.0s - 15.0s)
+         -------------------------------------------------------- */
+      #scene-7 {
+        background: #080A0E;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      .s7-flash {
+        position: absolute;
+        inset: 0;
+        background: #FF3B30;
+        opacity: 0;
+        z-index: 50;
+      }
+      .s7-logo-wrap {
+        position: relative;
+        width: 140px;
+        height: 140px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .s7-ring {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 2px dashed rgba(245, 158, 11, 0.4);
+      }
+      .s7-logo-img {
+        width: 90px;
+        height: 90px;
+        object-fit: contain;
+      }
+      .s7-wordmark {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 140px;
+        letter-spacing: -0.03em;
+        text-transform: uppercase;
+        color: #F8FAFC;
+        line-height: 0.95;
+      }
+      .s7-wordmark-dot {
+        color: #F59E0B;
+      }
+      .s7-descriptor {
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 14px;
+        letter-spacing: 0.28em;
+        color: #94A3B8;
+        text-transform: uppercase;
+        margin-top: 14px;
+      }
+      .s7-italic-line {
+        font-family: 'InstrumentSerif', serif;
+        font-style: italic;
+        font-size: 42px;
+        color: #FCD34D;
+        margin-top: 18px;
+        letter-spacing: -0.01em;
+      }
+      .s7-badge-bar {
+        margin-top: 40px;
+        display: flex;
+        gap: 18px;
+        align-items: center;
+      }
+      .s7-badge {
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        padding: 8px 18px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        color: #F8FAFC;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-duration="15"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- Background Audio Track -->
+      <audio
+        id="bgm"
+        src="assets/music/inspiration_track.mp3"
+        data-start="0"
+        data-duration="15"
+        data-track-index="1"
+      ></audio>
+
+      <!-- Persistent CRT & Analog Texture -->
+      <div class="crt-overlay"></div>
+
+      <!-- Persistent Camera / Viewfinder HUD Overlay -->
+      <div class="hud-frame">
+        <div class="hud-bracket bracket-tl"></div>
+        <div class="hud-bracket bracket-tr"></div>
+        <div class="hud-bracket bracket-bl"></div>
+        <div class="hud-bracket bracket-br"></div>
+
+        <div class="hud-header">
+          <div id="hud-title">[ GRAMERCY // WAR THUNDER COCKPIT</div>
+          <div id="hud-tc">TC 00:00:00:00 ]</div>
+        </div>
+
+        <div class="hud-footer">
+          <div id="hud-chapter">[ 00 - INITIALIZE</div>
+          <div class="hud-timeline">
+            <div class="hud-timeline-track">
+              <div class="hud-timeline-fill" id="hud-fill"></div>
+              <div class="hud-timeline-ticks" data-layout-allow-overflow>
+                <span class="hud-tick"></span>
+                <span class="hud-tick"></span>
+                <span class="hud-tick"></span>
+                <span class="hud-tick"></span>
+                <span class="hud-tick"></span>
+                <span class="hud-tick"></span>
+                <span class="hud-tick"></span>
+                <span class="hud-tick"></span>
+                <span class="hud-tick"></span>
+              </div>
+            </div>
+          </div>
+          <div class="hud-specs">120 BPM • 1920x1080 • 60 FPS ]</div>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           SCENE 0: INTRO (0.0s - 1.0s)
+           ======================================================== -->
+      <div class="scene" id="scene-0">
+        <div class="s0-grid"></div>
+        <div class="s0-crosshair"></div>
+        <div class="s0-beam" id="s0-beam"></div>
+        <div class="s0-flash" id="s0-flash"></div>
+      </div>
+
+      <!-- ========================================================
+           SCENE 1: THE CONFLICT (1.0s - 2.0s) - Vermilion
+           ======================================================== -->
+      <div class="scene" id="scene-1">
+        <div class="s1-header-tag" id="s1-tag">WAR THUNDER MODDING HAZARD // 50,000+ CSV STRINGS</div>
+        <div class="s1-title" id="s1-title">PATCH DAY.</div>
+        <div class="s1-subtitle" id="s1-subtitle">and your custom strings are wiped.</div>
+        <div class="s1-alert-banner" id="s1-alert">50,000+ CSVs OVERWRITTEN BY GAIJIN</div>
+      </div>
+
+      <!-- ========================================================
+           KINETIC RAPID-FIRE BEATS (2.0s - 4.0s)
+           ======================================================== -->
+      <!-- Beat 1: Cream (2.0s - 2.5s) -->
+      <div class="scene scene-kinetic" id="scene-k1">
+        <div class="kinetic-word" id="k1-word">NEVER</div>
+        <div class="kinetic-sub" id="k1-sub">overwrite stock game files</div>
+      </div>
+
+      <!-- Beat 2: Dark (2.5s - 3.0s) -->
+      <div class="scene scene-kinetic" id="scene-k2">
+        <div class="kinetic-word" id="k2-word">TOUCH</div>
+        <div class="kinetic-sub" id="k2-sub">vanilla files remain pristine</div>
+      </div>
+
+      <!-- Beat 3: Cobalt (3.0s - 3.5s) -->
+      <div class="scene scene-kinetic" id="scene-k3">
+        <div class="kinetic-word" id="k3-word">STOCK</div>
+        <div class="kinetic-sub" id="k3-sub">zero file tampering or corruption</div>
+      </div>
+
+      <!-- Beat 4: Vermilion (3.5s - 4.0s) -->
+      <div class="scene scene-kinetic" id="scene-k4">
+        <div class="kinetic-word" id="k4-word">CSVs.</div>
+        <div class="kinetic-sub" id="k4-sub">pure immutable delta synthesis</div>
+      </div>
+
+      <!-- ========================================================
+           SCENE 2: 50,000+ STRINGS & DELTA VAULT (4.0s - 6.0s) - Dark
+           ======================================================== -->
+      <div class="scene" id="scene-2">
+        <div class="s2-top-bar" id="s2-top">
+          <span>[ 03 - CORE ARCHITECTURE ]</span>
+          <span>IMMUTABLE DELTA VAULT</span>
+        </div>
+        <div class="s2-center" id="s2-center">
+          <div class="s2-counter-badge" id="s2-badge">
+            <span class="s2-delta-symbol">&Delta;</span>
+            <span class="s2-badge-text">IMMUTABLE LOCAL VAULT</span>
+          </div>
+          <div class="s2-vault-title" id="s2-vtitle">50,000+ STRINGS<span>.</span></div>
+          <div class="s2-vault-subtitle" id="s2-vsub">indexed in sub-millisecond local memory</div>
+          <div class="s2-pills" id="s2-pills">
+            <span class="s2-pill">DRIFT SQLITE</span>
+            <span class="s2-pill">&lt; 150MS DEBOUNCE</span>
+            <span class="s2-pill">ZERO ALLOCATION SEARCH</span>
+          </div>
+        </div>
+        <div class="s2-bottom-bar" id="s2-bottom">
+          <div class="s2-bottom-left">STOCK WAR THUNDER FILES ARE NEVER TOUCHED</div>
+          <div class="s2-bottom-right">100% update-proof isolated overrides</div>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           SCENE 3: LIVE COCKPIT SHOWCASE (6.0s - 8.0s) - Bass Drop!
+           ======================================================== -->
+      <div class="scene" id="scene-3">
+        <div class="s3-cockpit-stage">
+          <div class="s3-window-wrapper" id="s3-window">
+            <img
+              src="assets/images/cockpit.png"
+              class="s3-screenshot"
+              alt="Gramercy Populated Cockpit"
+            />
+            <div class="s3-callout callout-active" id="s3-call-active">
+              ● testLocalization: YES
+            </div>
+            <div class="s3-callout callout-deploy" id="s3-call-deploy">
+              ▲ 1-CLICK DEPLOY
+            </div>
+            <div class="s3-callout callout-override" id="s3-call-override">
+              ◆ Leopard 2A7V [DELTA ACTIVE]
+            </div>
+            <div class="s3-callout callout-virt" id="s3-call-virt">
+              ⚡ 120Hz VIRTUALIZED LIST
+            </div>
+            <div class="s3-reticle" id="s3-reticle"></div>
+          </div>
+        </div>
+
+        <div class="s3-sidebar" id="s3-sidebar">
+          <div class="s3-card">
+            <div class="s3-card-title">RUNTIME TELEMETRY</div>
+            <div class="s3-stat-row">
+              <span>SEARCH DEBOUNCE</span>
+              <span class="s3-stat-val">&lt; 150 ms</span>
+            </div>
+            <div class="s3-stat-row">
+              <span>DELTA VAULT</span>
+              <span class="s3-stat-val">DRIFT SQLITE</span>
+            </div>
+            <div class="s3-stat-row">
+              <span>ISOLATE ENGINE</span>
+              <span class="s3-stat-val">MULTI-CORE</span>
+            </div>
+            <div class="s3-stat-row">
+              <span>STOCK TAMPERING</span>
+              <span class="s3-stat-val" style="color:#10B981">0% (SAFE)</span>
+            </div>
+          </div>
+
+          <div class="s3-highlight-box">
+            "Edit any string. Deploy with zero game file destruction."
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           SCENE 4: 1-CLICK UPDATE SURVIVAL (8.0s - 10.0s)
+           ======================================================== -->
+      <div class="scene" id="scene-4">
+        <div class="s4-header-tag" id="s4-tag">IN-APP RECOVERY ENGINE</div>
+        <div class="s4-title" id="s4-title">SURVIVE EVERY PATCH</div>
+        <div class="s4-subtitle" id="s4-subtitle">War Thunder updates the game. Gramercy restores your custom text.</div>
+        
+        <div class="s4-pipeline" id="s4-pipe">
+          <div class="s4-step" id="s4-s1">
+            <div class="s4-step-num">STEP 01</div>
+            <div class="s4-step-title">PURGE CACHE</div>
+            <div class="s4-step-desc">Clears old temporary files safely</div>
+          </div>
+          <div class="s4-arrow" id="s4-a1">&rarr;</div>
+          <div class="s4-step" id="s4-s2">
+            <div class="s4-step-num">STEP 02</div>
+            <div class="s4-step-title">AUTO-DUMP</div>
+            <div class="s4-step-desc">Fresh vanilla strings from game</div>
+          </div>
+          <div class="s4-arrow" id="s4-a2">&rarr;</div>
+          <div class="s4-step" id="s4-s3">
+            <div class="s4-step-num">STEP 03</div>
+            <div class="s4-step-title">APPLY DELTAS</div>
+            <div class="s4-step-desc">100% overrides restored in 1 click</div>
+          </div>
+        </div>
+
+        <div class="s4-seal" id="s4-seal">
+          &check; 100% OVERRIDES PRESERVED &bull; ZERO DATA LOSS GUARANTEE
+        </div>
+      </div>
+
+      <!-- ========================================================
+           SCENE 5: 100% BATTLEYE SAFE (10.0s - 12.0s)
+           ======================================================== -->
+      <div class="scene" id="scene-5">
+        <div class="s5-shield-icon" id="s5-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+          </svg>
+        </div>
+        <div class="s5-title" id="s5-title">100% BATTLEYE SAFE</div>
+        <div class="s5-subtitle" id="s5-subtitle">official gaijin config.blk hook &bull; zero memory injection</div>
+        <div class="s5-pills" id="s5-pills">
+          <span class="s5-pill">ZERO PROCESS INJECTION</span>
+          <span class="s5-pill">PURE CSV SYNTHESIS</span>
+          <span class="s5-pill">0% BAN RISK</span>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           SCENE 6: CORE ENGINE BLITZ (12.0s - 13.0s)
+           ======================================================== -->
+      <div class="scene" id="scene-6">
+        <div class="s6-rewind-header" id="s6-rewind-hdr">
+          <span>&#9664;&#9664;</span>
+          <span id="s6-tc">00:00:07:27</span>
+        </div>
+        <div class="s6-cards" id="s6-cards">
+          <div class="s6-card" id="s6-c1">120Hz VIRTUALIZED COCKPIT</div>
+          <div class="s6-card" id="s6-c2" style="display:none;">DRIFT SQLITE DELTA VAULT</div>
+          <div class="s6-card" id="s6-c3" style="display:none;">ISOLATE BACKGROUND WORKERS</div>
+          <div class="s6-card" id="s6-c4" style="display:none;">1-CLICK UPDATE SURVIVAL</div>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           SCENE 7: HERO FINALE (13.0s - 15.0s) - Final Slam!
+           ======================================================== -->
+      <div class="scene" id="scene-7">
+        <div class="s7-flash" id="s7-flash"></div>
+        <div class="s7-logo-wrap" id="s7-logo">
+          <div class="s7-ring" id="s7-ring"></div>
+          <img src="assets/images/logo.png" class="s7-logo-img" alt="Gramercy" />
+        </div>
+        <div class="s7-wordmark" id="s7-wordmark">
+          GRAMERCY<span class="s7-wordmark-dot">.</span>
+        </div>
+        <div class="s7-descriptor" id="s7-descriptor">
+          WAR THUNDER LOCALIZATION COCKPIT // COMMUNITY DELTA VAULT
+        </div>
+        <div class="s7-italic-line" id="s7-line">
+          type &bull; override &bull; deploy &bull; sync &bull; play
+        </div>
+        <div class="s7-badge-bar" id="s7-badges">
+          <span class="s7-badge">FREE &amp; OPEN SOURCE</span>
+          <span class="s7-badge">WINDOWS | LINUX | macOS</span>
+          <span class="s7-badge">GITHUB.COM/VONARIAN/GRAMERCY</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- GSAP Master Animation Pipeline (Strict 120 BPM Locked) -->
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // HUD Elements
+      const tcDisplay = document.getElementById("hud-tc");
+      const chapterDisplay = document.getElementById("hud-chapter");
+      const hudFill = document.getElementById("hud-fill");
+
+      // HUD and Timeline Proxy Updater (30fps / 60fps compliant)
+      const timeProxy = { t: 0 };
+      tl.to(timeProxy, {
+        t: 15,
+        duration: 15,
+        ease: "none",
+        onUpdate: () => {
+          const t = timeProxy.t;
+          const frames = Math.floor((t % 1) * 30);
+          const secs = Math.floor(t) % 60;
+          const mins = Math.floor(t / 60);
+          const pad = (n) => String(n).padStart(2, "0");
+          tcDisplay.textContent = `TC 00:${pad(mins)}:${pad(secs)}:${pad(frames)} ]`;
+
+          // Timeline scrubber
+          hudFill.style.width = `${(t / 15) * 100}%`;
+
+          // Chapter display strictly aligned to beats
+          if (t < 1.0) chapterDisplay.textContent = "[ 00 - INITIALIZE";
+          else if (t < 2.0) chapterDisplay.textContent = "[ 01 - THE PROBLEM";
+          else if (t < 4.0) chapterDisplay.textContent = "[ 02 - KINETIC BEAT";
+          else if (t < 6.0) chapterDisplay.textContent = "[ 03 - DELTA VAULT";
+          else if (t < 8.0) chapterDisplay.textContent = "[ 04 - LIVE COCKPIT";
+          else if (t < 10.0) chapterDisplay.textContent = "[ 05 - 1-CLICK RECOVERY";
+          else if (t < 12.0) chapterDisplay.textContent = "[ 06 - BATTLEYE SAFE";
+          else if (t < 13.0) {
+            chapterDisplay.textContent = "[ 07 - CORE ENGINE";
+            const rewSec = Math.max(0, 7.27 - (t - 12.0) * 6.0);
+            const rewEl = document.getElementById("s6-tc");
+            if (rewEl) rewEl.textContent = `00:00:0${rewSec.toFixed(2).replace('.', ':')}`;
+          } else {
+            chapterDisplay.textContent = "[ 08 - GRAMERCY HERO";
+          }
+        }
+      }, 0);
+
+      // ========================================================
+      // SCENE 0: INTRO (0.0s - 1.0s)
+      // ========================================================
+      tl.set("#scene-0", { display: "flex", opacity: 1 }, 0);
+      tl.fromTo("#s0-beam",
+        { y: -200, opacity: 0 },
+        { y: 740, opacity: 1, duration: 0.85, ease: "power3.in" },
+        0.05
+      );
+      tl.fromTo("#s0-flash",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.08, ease: "power4.out" },
+        0.92
+      );
+      tl.to("#scene-0", { opacity: 0, duration: 0.04 }, 0.96);
+      tl.set("#scene-0", { display: "none" }, 1.0);
+
+      // ========================================================
+      // SCENE 1: THE CONFLICT (1.0s - 2.0s) - Vermilion
+      // ========================================================
+      tl.set("#scene-1", { display: "flex", opacity: 1 }, 1.0);
+      tl.fromTo("#s1-title",
+        { scale: 1.35, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2)" },
+        1.0
+      );
+      tl.fromTo("#s1-tag",
+        { opacity: 0, y: -15 },
+        { opacity: 1, y: 0, duration: 0.25, ease: "power2.out" },
+        1.15
+      );
+      tl.fromTo("#s1-subtitle",
+        { opacity: 0, y: 25 },
+        { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" },
+        1.25
+      );
+      tl.fromTo("#s1-alert",
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 0.25, ease: "power2.out" },
+        1.45
+      );
+      tl.to("#scene-1", { opacity: 0, duration: 0.04 }, 1.96);
+      tl.set("#scene-1", { display: "none" }, 2.0);
+
+      // ========================================================
+      // KINETIC RAPID FIRE (2.0s - 4.0s) - 4 Consecutive Beats!
+      // ========================================================
+      // Beat 1: NEVER (2.0s - 2.5s) - Cream
+      tl.set("#scene-k1", { display: "flex", opacity: 1 }, 2.0);
+      tl.set(".hud-header", { color: "#111317" }, 2.0);
+      tl.set(".hud-footer", { color: "#111317" }, 2.0);
+      tl.set(".hud-bracket", { borderColor: "#111317" }, 2.0);
+      tl.set(".hud-timeline-track", { background: "rgba(0, 0, 0, 0.25)" }, 2.0);
+      tl.set(".hud-tick", { background: "rgba(0, 0, 0, 0.4)" }, 2.0);
+      tl.fromTo("#k1-word",
+        { scale: 1.4, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.2, ease: "back.out(2)" },
+        2.0
+      );
+      tl.fromTo("#k1-sub",
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.2, ease: "power2.out" },
+        2.15
+      );
+      tl.to("#scene-k1", { opacity: 0, duration: 0.04 }, 2.46);
+      tl.set("#scene-k1", { display: "none" }, 2.5);
+
+      // Beat 2: TOUCH (2.5s - 3.0s) - Dark
+      tl.set("#scene-k2", { display: "flex", opacity: 1 }, 2.5);
+      tl.set(".hud-header", { color: "#F8FAFC" }, 2.5);
+      tl.set(".hud-footer", { color: "#F8FAFC" }, 2.5);
+      tl.set(".hud-bracket", { borderColor: "rgba(255, 255, 255, 0.5)" }, 2.5);
+      tl.set(".hud-timeline-track", { background: "rgba(255, 255, 255, 0.25)" }, 2.5);
+      tl.set(".hud-tick", { background: "rgba(255, 255, 255, 0.45)" }, 2.5);
+      tl.fromTo("#k2-word",
+        { scale: 1.4, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.2, ease: "back.out(2)" },
+        2.5
+      );
+      tl.fromTo("#k2-sub",
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.2, ease: "power2.out" },
+        2.65
+      );
+      tl.to("#scene-k2", { opacity: 0, duration: 0.04 }, 2.96);
+      tl.set("#scene-k2", { display: "none" }, 3.0);
+
+      // Beat 3: STOCK (3.0s - 3.5s) - Cobalt Blue
+      tl.set("#scene-k3", { display: "flex", opacity: 1 }, 3.0);
+      tl.fromTo("#k3-word",
+        { scale: 1.4, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.2, ease: "back.out(2)" },
+        3.0
+      );
+      tl.fromTo("#k3-sub",
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.2, ease: "power2.out" },
+        3.15
+      );
+      tl.to("#scene-k3", { opacity: 0, duration: 0.04 }, 3.46);
+      tl.set("#scene-k3", { display: "none" }, 3.5);
+
+      // Beat 4: CSVs. (3.5s - 4.0s) - Vermilion
+      tl.set("#scene-k4", { display: "flex", opacity: 1 }, 3.5);
+      tl.set(".hud-header", { color: "#08090C" }, 3.5);
+      tl.set(".hud-footer", { color: "#08090C" }, 3.5);
+      tl.set(".hud-bracket", { borderColor: "#08090C" }, 3.5);
+      tl.set(".hud-timeline-track", { background: "rgba(0, 0, 0, 0.25)" }, 3.5);
+      tl.set(".hud-tick", { background: "rgba(0, 0, 0, 0.4)" }, 3.5);
+      tl.fromTo("#k4-word",
+        { scale: 1.4, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.2, ease: "back.out(2)" },
+        3.5
+      );
+      tl.fromTo("#k4-sub",
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.2, ease: "power2.out" },
+        3.65
+      );
+      tl.to("#scene-k4", { opacity: 0, duration: 0.04 }, 3.96);
+      tl.set("#scene-k4", { display: "none" }, 4.0);
+
+      // ========================================================
+      // SCENE 2: 50,000+ STRINGS & DELTA VAULT (4.0s - 6.0s) - Dark
+      // ========================================================
+      tl.set("#scene-2", { display: "flex", opacity: 1 }, 4.0);
+      tl.set(".hud-header", { color: "#F8FAFC" }, 4.0);
+      tl.set(".hud-footer", { color: "#F8FAFC" }, 4.0);
+      tl.set(".hud-bracket", { borderColor: "rgba(255, 255, 255, 0.5)" }, 4.0);
+      tl.set(".hud-timeline-track", { background: "rgba(255, 255, 255, 0.25)" }, 4.0);
+      tl.set(".hud-tick", { background: "rgba(255, 255, 255, 0.45)" }, 4.0);
+
+      // Beat 1 (4.0s): Kick (RMS 16,678)! 50,000+ STRINGS slams in instantly!
+      tl.fromTo("#s2-vtitle",
+        { scale: 1.45, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.18, ease: "back.out(2.2)" },
+        4.0
+      );
+      tl.fromTo("#s2-top",
+        { opacity: 0, y: -10 },
+        { opacity: 1, y: 0, duration: 0.15, ease: "power2.out" },
+        4.0
+      );
+      tl.fromTo("#s2-vsub",
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.18, ease: "power2.out" },
+        4.15
+      );
+
+      // Beat 2 (4.5s): Kick (RMS 12,587)! Immutable Vault Capsule Badge slams in!
+      tl.fromTo("#s2-badge",
+        { scale: 0.5, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.22, ease: "back.out(2)" },
+        4.5
+      );
+
+      // Beat 3 (5.0s): Snare (RMS 12,222)! 3 Technical Spec Pills punch in!
+      tl.fromTo("#s2-pills",
+        { opacity: 0, y: 20, scale: 0.9 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.2, ease: "back.out(1.8)" },
+        5.0
+      );
+
+      // Beat 4 (5.5s): Kick (RMS 12,372)! Bottom status bar locks!
+      tl.fromTo("#s2-bottom",
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.18, ease: "power2.out" },
+        5.5
+      );
+      tl.to("#scene-2", { opacity: 0, duration: 0.04 }, 5.96);
+      tl.set("#scene-2", { display: "none" }, 6.0);
+
+      // ========================================================
+      // SCENE 3: LIVE COCKPIT SHOWCASE (6.0s - 8.0s) - Mega Bass Drop!
+      // ========================================================
+      tl.set("#scene-3", { display: "flex", opacity: 1 }, 6.0);
+      
+      // Beat 1 (6.0s): Mega Bass Drop (RMS 21,047)! Cockpit window slams forward!
+      tl.fromTo("#s3-window",
+        { scale: 1.25, rotateY: 8, opacity: 0 },
+        { scale: 1, rotateY: -7, opacity: 1, duration: 0.22, ease: "back.out(1.8)" },
+        6.0
+      );
+      tl.fromTo("#s3-sidebar",
+        { opacity: 0, x: 35 },
+        { opacity: 1, x: 0, duration: 0.2, ease: "power2.out" },
+        6.0
+      );
+
+      // Beat 2 (6.5s): Kick! testLocalization: ACTIVE locks in!
+      tl.fromTo("#s3-call-active",
+        { opacity: 0, scale: 0.65 },
+        { opacity: 1, scale: 1, duration: 0.18, ease: "back.out(2)" },
+        6.5
+      );
+
+      // Beat 3 (7.0s): Snare (RMS 13,217)! Leopard 2A7V delta override row locks in!
+      tl.fromTo("#s3-call-override",
+        { opacity: 0, y: 15, scale: 0.85 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.18, ease: "back.out(2)" },
+        7.0
+      );
+
+      // Beat 4 (7.5s): Kick (RMS 13,510)! Deploy Button targeting reticle + 120Hz badge!
+      tl.fromTo("#s3-reticle",
+        { opacity: 0, scale: 2.2 },
+        { opacity: 1, scale: 1, duration: 0.18, ease: "power4.out" },
+        7.5
+      );
+      tl.fromTo("#s3-call-deploy",
+        { opacity: 0, scale: 0.75 },
+        { opacity: 1, scale: 1, duration: 0.18, ease: "back.out(2)" },
+        7.5
+      );
+      tl.fromTo("#s3-call-virt",
+        { opacity: 0, x: -15 },
+        { opacity: 1, x: 0, duration: 0.18, ease: "power2.out" },
+        7.5
+      );
+      tl.to("#s3-call-deploy", {
+        backgroundColor: "#F59E0B",
+        color: "#000000",
+        duration: 0.08,
+        yoyo: true,
+        repeat: 3
+      }, 7.65);
+      tl.to("#scene-3", { opacity: 0, duration: 0.04 }, 7.96);
+      tl.set("#scene-3", { display: "none" }, 8.0);
+
+      // ========================================================
+      // SCENE 4: 1-CLICK UPDATE SURVIVAL (8.0s - 10.0s) - Bass Hit!
+      // ========================================================
+      tl.set("#scene-4", { display: "flex", opacity: 1 }, 8.0);
+
+      // Beat 1 (8.0s): Bass Hit (RMS 14,056)! Title slams down!
+      tl.fromTo("#s4-title",
+        { opacity: 0, scale: 1.35 },
+        { opacity: 1, scale: 1, duration: 0.2, ease: "back.out(2)" },
+        8.0
+      );
+      tl.fromTo("#s4-tag",
+        { opacity: 0, y: -10 },
+        { opacity: 1, y: 0, duration: 0.15, ease: "power2.out" },
+        8.0
+      );
+      tl.fromTo("#s4-subtitle",
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.18, ease: "power2.out" },
+        8.15
+      );
+
+      // Beat 2 (8.5s): Kick! Step 01 slams in!
+      tl.fromTo("#s4-s1",
+        { opacity: 0, y: 20, scale: 0.92 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.2, ease: "back.out(1.8)" },
+        8.5
+      );
+
+      // Beat 3 (9.0s): Snare (RMS 12,740)! Arrow ➔ Step 02 slams in!
+      tl.fromTo(["#s4-a1", "#s4-s2"],
+        { opacity: 0, y: 20, scale: 0.92 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.2, ease: "back.out(1.8)" },
+        9.0
+      );
+
+      // Beat 4 (9.5s): Kick (RMS 12,917)! Arrow ➔ Step 03 slams in!
+      tl.fromTo(["#s4-a2", "#s4-s3"],
+        { opacity: 0, y: 20, scale: 0.92 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.2, ease: "back.out(1.8)" },
+        9.5
+      );
+
+      // Pickup (9.75s): Seal stamps down!
+      tl.fromTo("#s4-seal",
+        { opacity: 0, scale: 0.8 },
+        { opacity: 1, scale: 1, duration: 0.18, ease: "back.out(2.5)" },
+        9.75
+      );
+      tl.to("#scene-4", { opacity: 0, duration: 0.04 }, 9.96);
+      tl.set("#scene-4", { display: "none" }, 10.0);
+
+      // ========================================================
+      // SCENE 5: 100% BATTLEYE SAFE (10.0s - 12.0s) - Bass Drop!
+      // ========================================================
+      tl.set("#scene-5", { display: "flex", opacity: 1 }, 10.0);
+
+      // Beat 1 (10.0s): Bass Drop (RMS 20,681)! Shield + Title slam simultaneously!
+      tl.fromTo("#s5-icon",
+        { scale: 0.3, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.2, ease: "back.out(2.2)" },
+        10.0
+      );
+      tl.fromTo("#s5-title",
+        { opacity: 0, scale: 1.35 },
+        { opacity: 1, scale: 1, duration: 0.2, ease: "back.out(2)" },
+        10.0
+      );
+
+      // Beat 2 (10.5s): Kick! Official Gaijin hook subtitle snaps in!
+      tl.fromTo("#s5-subtitle",
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.18, ease: "power2.out" },
+        10.5
+      );
+
+      // Beat 3 (11.0s): Snare! Security pulse on shield!
+      tl.to("#s5-icon",
+        { filter: "drop-shadow(0 0 25px #10B981)", duration: 0.18, yoyo: true, repeat: 1 },
+        11.0
+      );
+
+      // Beat 4 (11.5s): Kick (RMS 12,526)! Security badges punch in!
+      tl.fromTo("#s5-pills",
+        { opacity: 0, y: 20, scale: 0.9 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.2, ease: "back.out(1.8)" },
+        11.5
+      );
+      tl.to("#scene-5", { opacity: 0, duration: 0.04 }, 11.96);
+      tl.set("#scene-5", { display: "none" }, 12.0);
+
+      // ========================================================
+      // SCENE 6: CORE ENGINE BLITZ (12.0s - 13.0s) - Rewind Stutter!
+      // ========================================================
+      tl.set("#scene-6", { display: "flex", opacity: 1 }, 12.0);
+      // Invert HUD on light background
+      tl.set(".hud-header", { color: "#111317" }, 12.0);
+      tl.set(".hud-footer", { color: "#111317" }, 12.0);
+      tl.set(".hud-bracket", { borderColor: "#111317" }, 12.0);
+      tl.set(".hud-timeline-track", { background: "rgba(0, 0, 0, 0.25)" }, 12.0);
+      tl.set(".hud-tick", { background: "rgba(0, 0, 0, 0.4)" }, 12.0);
+
+      // Strobe through flash cards every 0.25s (sub-beat ticks) with scale bounce
+      tl.set("#s6-c1", { display: "block" }, 12.0);
+      tl.fromTo("#s6-c1", { scale: 1.12 }, { scale: 1, duration: 0.15, ease: "power2.out" }, 12.0);
+
+      tl.set("#s6-c1", { display: "none" }, 12.25);
+      tl.set("#s6-c2", { display: "block" }, 12.25);
+      tl.fromTo("#s6-c2", { scale: 1.12 }, { scale: 1, duration: 0.15, ease: "power2.out" }, 12.25);
+
+      tl.set("#s6-c2", { display: "none" }, 12.5);
+      tl.set("#s6-c3", { display: "block" }, 12.5);
+      tl.fromTo("#s6-c3", { scale: 1.12 }, { scale: 1, duration: 0.15, ease: "power2.out" }, 12.5);
+
+      tl.set("#s6-c3", { display: "none" }, 12.75);
+      tl.set("#s6-c4", { display: "block" }, 12.75);
+      tl.fromTo("#s6-c4", { scale: 1.12 }, { scale: 1, duration: 0.15, ease: "power2.out" }, 12.75);
+
+      tl.to("#scene-6", { opacity: 0, duration: 0.04 }, 12.96);
+      tl.set("#scene-6", { display: "none" }, 13.0);
+
+      // Restore HUD on dark
+      tl.set(".hud-header", { color: "#F8FAFC" }, 13.0);
+      tl.set(".hud-footer", { color: "#F8FAFC" }, 13.0);
+      tl.set(".hud-bracket", { borderColor: "rgba(255, 255, 255, 0.5)" }, 13.0);
+      tl.set(".hud-timeline-track", { background: "rgba(255, 255, 255, 0.25)" }, 13.0);
+      tl.set(".hud-tick", { background: "rgba(255, 255, 255, 0.45)" }, 13.0);
+
+      // ========================================================
+      // SCENE 7: HERO FINALE (13.0s - 15.0s) - Ultimate Slam!
+      // ========================================================
+      tl.set("#scene-7", { display: "flex", opacity: 1 }, 13.0);
+      // High-energy orange strobe flash on the 13.0s slam
+      tl.fromTo("#s7-flash",
+        { opacity: 0.8 },
+        { opacity: 0, duration: 0.2, ease: "power2.out" },
+        13.0
+      );
+      tl.fromTo("#s7-logo",
+        { scale: 0.4, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.22, ease: "back.out(2.2)" },
+        13.0
+      );
+      tl.fromTo("#s7-ring",
+        { rotation: 0 },
+        { rotation: 180, duration: 2.0, ease: "none" },
+        13.0
+      );
+      // Wordmark slams at 13.0s with zero delay!
+      tl.fromTo("#s7-wordmark",
+        { opacity: 0, scale: 1.4 },
+        { opacity: 1, scale: 1, duration: 0.22, ease: "back.out(2.2)" },
+        13.0
+      );
+
+      // Beat 2 (13.5s): Kick! Category descriptor locks!
+      tl.fromTo("#s7-descriptor",
+        { opacity: 0, y: -10 },
+        { opacity: 1, y: 0, duration: 0.18, ease: "power2.out" },
+        13.5
+      );
+
+      // Beat 3 (14.0s): Snare! Italic mantra locks!
+      tl.fromTo("#s7-line",
+        { opacity: 0, y: 15, scale: 0.9 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.2, ease: "back.out(1.8)" },
+        14.0
+      );
+
+      // Beat 4 (14.5s): Kick! Platform badges lock!
+      tl.fromTo("#s7-badges",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.2, ease: "power2.out" },
+        14.5
+      );
+
+      // Register master timeline with Hyperframes
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

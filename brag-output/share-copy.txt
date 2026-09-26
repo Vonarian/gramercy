@@ -1,0 +1,1 @@
+Tired of game updates nuking your custom localizations? Built Gramercy — a native 120Hz tactical cockpit with Drift SQLite immutable delta synthesis and isolate multi-threading that makes 50,000+ War Thunder strings 100% BattlEye safe. Full showreel: github.com/Vonarian/gramercy
