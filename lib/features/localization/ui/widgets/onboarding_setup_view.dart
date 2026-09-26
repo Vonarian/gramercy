@@ -76,6 +76,7 @@ class OnboardingSetupView extends ConsumerWidget {
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
+                          fontFamily: 'Inter',
                         ),
                       ),
                     ),
@@ -91,7 +92,10 @@ class OnboardingSetupView extends ConsumerWidget {
                         }
                       },
                       icon: const Icon(Icons.folder_open, size: 14),
-                      label: const Text('Browse Folder'),
+                      label: const Text(
+                        'Browse Folder',
+                        style: TextStyle(fontFamily: 'Inter'),
+                      ),
                     ),
                   ],
                 ),
