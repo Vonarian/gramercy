@@ -12,7 +12,10 @@ import 'package:gramercy/features/localization/providers/localization_providers.
 import 'package:gramercy/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<void> _captureToPng(WidgetTester tester, String outputFilePath) async {
+Future<void> _captureToPng(WidgetTester tester, String? outputFilePath) async {
+  if (outputFilePath == null || outputFilePath.isEmpty) return;
+  final file = File(outputFilePath);
+  if (!file.parent.existsSync()) return;
   await tester.runAsync(() async {
     final repaintBoundaryFinder = find.byType(RepaintBoundary).first;
     final boundary =
@@ -20,13 +23,12 @@ Future<void> _captureToPng(WidgetTester tester, String outputFilePath) async {
     final image = await boundary.toImage(pixelRatio: 1.0);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     final pngBytes = byteData!.buffer.asUint8List();
-    File(outputFilePath).writeAsBytesSync(pngBytes);
+    file.writeAsBytesSync(pngBytes);
   });
 }
 
 void main() {
-  const artifactDir =
-      r'C:\Users\vonar\.gemini\antigravity\brain\c6bd9bec-97a2-40bf-8adc-be9f89e70572';
+  final artifactDir = Platform.environment['SNAPSHOT_OUTPUT_DIR'];
 
   testWidgets('Snapshot: Unconfigured / Empty State', (tester) async {
     tester.view.physicalSize = const Size(1280, 800);
@@ -57,7 +59,9 @@ void main() {
 
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    await _captureToPng(tester, '$artifactDir\\ui_snapshot_empty.png');
+    if (artifactDir != null && artifactDir.isNotEmpty) {
+      await _captureToPng(tester, '$artifactDir/ui_snapshot_empty.png');
+    }
     await db.close();
   });
 
@@ -115,7 +119,9 @@ void main() {
 
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    await _captureToPng(tester, '$artifactDir\\ui_snapshot_populated.png');
+    if (artifactDir != null && artifactDir.isNotEmpty) {
+      await _captureToPng(tester, '$artifactDir/ui_snapshot_populated.png');
+    }
     await db.close();
   });
 }

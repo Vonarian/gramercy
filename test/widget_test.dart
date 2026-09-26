@@ -6,6 +6,7 @@ import 'package:gramercy/core/database/database.dart';
 import 'package:gramercy/core/services/preferences_service.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
 import 'package:gramercy/features/localization/ui/widgets/about_gramercy_dialog.dart';
+import 'package:gramercy/features/localization/ui/widgets/purge_confirm_dialog.dart';
 import 'package:gramercy/features/localization/ui/widgets/rebuild_dialog.dart';
 import 'package:gramercy/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -237,6 +238,22 @@ void main() {
         ),
         findsOneWidget,
       );
+
+      // Tap Purge Cache to verify safety confirmation dialog opens
+      final purgeBtn = find.text('Purge Cache');
+      expect(purgeBtn, findsOneWidget);
+      await tester.tap(purgeBtn);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(find.byType(PurgeConfirmDialog), findsOneWidget);
+      expect(find.text('Confirm Cache Purge & Backup'), findsOneWidget);
+
+      // Cancel confirmation
+      await tester.tap(find.text('Cancel'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.byType(PurgeConfirmDialog), findsNothing);
 
       await tester.tap(find.text('Close'));
       await tester.pumpAndSettle();

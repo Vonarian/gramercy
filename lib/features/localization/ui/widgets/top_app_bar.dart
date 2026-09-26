@@ -156,6 +156,7 @@ class TopAppBar extends ConsumerWidget implements PreferredSizeWidget {
           color: Colors.black,
           fontWeight: FontWeight.bold,
           fontSize: 12,
+          fontFamily: 'Inter',
         ),
       ),
     );

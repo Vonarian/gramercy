@@ -22,16 +22,14 @@ void main() {
   });
 
   group('RebuildService Tests', () {
-    test('purgeLocalizationCache deletes both .csv and .orig files', () async {
+    test('purgeLocalizationCache backs up files and deletes csv, orig, and localization.blk', () async {
       final csv1 = File('${langDir.path}/units.csv');
       final orig1 = File('${langDir.path}/units.csv.orig');
-      final csv2 = File('${langDir.path}/ui.csv');
-      final otherFile = File('${langDir.path}/notes.txt');
+      final blkFile = File('${langDir.path}/localization.blk');
 
       await csv1.writeAsString('id;English\nkey;val');
       await orig1.writeAsString('id;English\nkey;val');
-      await csv2.writeAsString('id;English\nkey;val2');
-      await otherFile.writeAsString('custom notes');
+      await blkFile.writeAsString('locTable { file:t="%lang/units.csv" }');
 
       // Create config.blk without testLocalization
       final configBlk = File('${tempDir.path}/config.blk');
@@ -40,11 +38,17 @@ void main() {
       final result = await service.purgeLocalizationCache(tempDir.path);
 
       expect(result.success, isTrue);
-      expect(result.deletedCount, equals(3)); // 2 csv + 1 orig
+      expect(result.deletedCount, equals(3));
+      expect(result.backupPath, isNotNull);
       expect(await csv1.exists(), isFalse);
       expect(await orig1.exists(), isFalse);
-      expect(await csv2.exists(), isFalse);
-      expect(await otherFile.exists(), isTrue); // txt preserved
+      expect(await blkFile.exists(), isFalse);
+
+      // Verify backup folder contains files
+      final backupDir = Directory(result.backupPath!);
+      expect(await backupDir.exists(), isTrue);
+      expect(await File('${backupDir.path}/units.csv').exists(), isTrue);
+      expect(await File('${backupDir.path}/localization.blk').exists(), isTrue);
 
       // Ensure config.blk was patched
       final updatedBlk = await configBlk.readAsString();
@@ -81,6 +85,83 @@ void main() {
       expect(status.hasFiles, isTrue);
       expect(status.fileCount, equals(2));
       expect(status.keyFilesFound, contains('units.csv'));
+    });
+
+    test(
+      'checkFreshStringsExist with since parameter ignores older files',
+      () async {
+        final unitsCsv = File('${langDir.path}/units.csv');
+        await unitsCsv.writeAsString('<ID>;<English>\ntank_t90;T-90A');
+
+        // Check with a future since threshold
+        final futureSince = DateTime.now().add(const Duration(minutes: 5));
+        final statusFuture = await service.checkFreshStringsExist(
+          tempDir.path,
+          since: futureSince,
+        );
+        expect(statusFuture.hasFiles, isFalse);
+        expect(statusFuture.fileCount, equals(0));
+
+        // Check with a past since threshold
+        final pastSince = DateTime.now().subtract(const Duration(minutes: 5));
+        final statusPast = await service.checkFreshStringsExist(
+          tempDir.path,
+          since: pastSince,
+        );
+        expect(statusPast.hasFiles, isTrue);
+        expect(statusPast.fileCount, equals(1));
+      },
+    );
+
+    test(
+      'purgeLocalizationCache records purgedAt and verifies no remaining files',
+      () async {
+        final unitsCsv = File('${langDir.path}/units.csv');
+        await unitsCsv.writeAsString('test');
+        final blkFile = File('${langDir.path}/localization.blk');
+        await blkFile.writeAsString('test');
+
+        final result = await service.purgeLocalizationCache(tempDir.path);
+        expect(result.success, isTrue);
+        expect(result.purgedAt, isNotNull);
+        expect(result.remainingFiles, isEmpty);
+      },
+    );
+  });
+
+  group('BackupService Tests', () {
+    const backupService = BackupService();
+
+    test('returns null when lang folder is empty', () async {
+      final res = await backupService.backupLocalizationFolder(tempDir.path);
+      expect(res, isNull);
+    });
+
+    test('returns null when path is empty', () async {
+      final res = await backupService.backupLocalizationFolder('');
+      expect(res, isNull);
+    });
+
+    test('copies all files from lang directory to backup directory', () async {
+      final file1 = File('${langDir.path}/units.csv');
+      await file1.writeAsString('units content');
+      final file2 = File('${langDir.path}/localization.blk');
+      await file2.writeAsString('blk content');
+
+      final backupPath = await backupService.backupLocalizationFolder(
+        tempDir.path,
+      );
+      expect(backupPath, isNotNull);
+      final backupDir = Directory(backupPath!);
+      expect(await backupDir.exists(), isTrue);
+      expect(
+        await File('${backupDir.path}/units.csv').readAsString(),
+        equals('units content'),
+      );
+      expect(
+        await File('${backupDir.path}/localization.blk').readAsString(),
+        equals('blk content'),
+      );
     });
   });
 }
