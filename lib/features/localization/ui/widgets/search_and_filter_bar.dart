@@ -151,7 +151,13 @@ class _SearchAndFilterBarState extends ConsumerState<SearchAndFilterBar> {
       },
       style: ButtonStyle(
         visualDensity: VisualDensity.compact,
-        textStyle: WidgetStateProperty.all(const TextStyle(fontSize: 11)),
+        textStyle: WidgetStateProperty.all(
+          const TextStyle(
+            fontSize: 11,
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }
