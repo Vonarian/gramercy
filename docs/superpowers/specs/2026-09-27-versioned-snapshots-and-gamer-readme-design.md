@@ -136,7 +136,7 @@ Transform `README.md` from an academic architecture brief into a high-octane, ga
    - *120Hz Virtualized Cockpit & Multi-Threaded Isolates* ➔ **Instant 50,000+ String Cockpit**: Zero lag or stutter when searching through 50,000+ tanks, planes, ammo types, and kill messages.
    - *Immutable Delta-Synthesis* ➔ **Surgical Patching**: Only your customized words are modified. Everything else stays pure stock War Thunder.
    - *1-Click `config.blk` Hook* ➔ **1-Click Game Enabler**: Automatically turns on War Thunder's official custom localization mode (`testLocalization:b=yes`) without manual config editing.
-   - *Community Presets* ➔ **Squadron & Community Sharing**: Export and share kill-feed packs, historical designations, or meme packs with friends via 1-click shareable JSON files.
+   - *Community Presets* ➔ Keep the recognized term **Community Presets (Squadron & WT Live Sharing)**: Export and share vehicle designations, anime/meme kill-feed packs, or historical weapon names with friends and squadrons via 1-click shareable JSON files.
 3. **Major Update Survival Guide**:
    - Emphasize the **Automated Snapshot Safety Net**: Gramercy automatically snapshots your edits outside the game directory before any update or purge, with instant 1-click restore.
    - Step-by-step update routine simplified to 3 clear steps.
