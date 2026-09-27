@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] - 2026-09-27
+
+### Added
+- **Automated Snapshot Vault & Safety Net**: Added `SnapshotService` and `SnapshotMetadata` to create immutable, timestamped JSON checkpoints of all user customization deltas in the OS app documents folder (`%APPDATA%/gramercy/snapshots/` on Windows, `Application Support` on macOS, `~/.local/share` on Linux), completely isolated from the game installation directory.
+- **Pre-Purge Automated Snapshot Hook**: Integrated an automatic pre-purge snapshot capture directly into `RebuildService.purgeLocalizationCache()`. Guarantees custom delta overrides are preserved before cache files are cleaned or reset during game updates.
+- **Snapshot History UI & 1-Click Rollback**: Added `SnapshotHistoryDialog`, `SnapshotItemCard`, and `snapshot_dialog_helpers.dart` accessible via **Presets ➔ Snapshot History...** in the top navigation bar. Enables players to view override counts, capture manual checkpoints, restore previous snapshots with atomic database replacement, and prune obsolete snapshots.
+
+### Changed
+- **Gamer-Friendly README Overhaul**: Completely overhauled documentation with player-centric value propositions (*Armor-Plated Edit Locker*, *Instant 50,000+ String Cockpit*, *Surgical Patching*, *1-Click Game Enabler*), a step-by-step Major Game Update Survival Guide, and updated architecture diagrams.
+- **Community Presets Retention**: Preserved community sharing terminology (*Community Presets (Squadron & WT Live Sharing)*) across preset export/import workflows.
+- **Version Bump**: Updated app version to `v1.4.0` in `pubspec.yaml`, `AboutGramercyDialog`, and `README.md`.
+
+---
+
 ## [1.3.1] - 2026-09-24
 
 ### Fixed
