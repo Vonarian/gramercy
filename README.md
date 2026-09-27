@@ -11,7 +11,7 @@
   [![Anti--Cheat](https://img.shields.io/badge/Anti--Cheat-100%25%20BattlEye%20Safe-success)](https://warthunder.com)
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
   [![Tests](https://img.shields.io/badge/Tests-82%20Passed-brightgreen)](test/)
-  [![Release](https://img.shields.io/badge/Release-v1.3.1-blue)](https://github.com/Vonarian/gramercy/releases)
+  [![Release](https://img.shields.io/badge/Release-v1.4.0-blue)](https://github.com/Vonarian/gramercy/releases)
   [![Platforms](https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux%20%7C%20macOS-blue)](https://flutter.dev)
 </div>
 
