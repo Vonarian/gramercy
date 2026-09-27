@@ -5,9 +5,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/database/database.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../providers/db_provider.dart';
 import '../../services/preset_service.dart';
+import 'snapshot_history_dialog.dart';
 
 class PresetsMenuButton extends ConsumerWidget {
   const PresetsMenuButton({super.key});
@@ -27,38 +29,33 @@ class PresetsMenuButton extends ConsumerWidget {
           _exportPreset(context, ref);
         } else if (action == 'import') {
           _importPreset(context, ref);
+        } else if (action == 'snapshots') {
+          showDialog<void>(
+            context: context,
+            builder: (_) => const SnapshotHistoryDialog(),
+          );
         }
       },
-      itemBuilder: (context) => [
-        const PopupMenuItem<String>(
-          value: 'export',
-          child: Row(
-            children: [
-              Icon(
-                Icons.file_upload_outlined,
-                size: 18,
-                color: AppTheme.primaryAmber,
-              ),
-              SizedBox(width: 8),
-              Text('Export Preset (.json)', style: TextStyle(fontSize: 13)),
-            ],
-          ),
-        ),
-        const PopupMenuItem<String>(
-          value: 'import',
-          child: Row(
-            children: [
-              Icon(
-                Icons.file_download_outlined,
-                size: 18,
-                color: AppTheme.primaryAmber,
-              ),
-              SizedBox(width: 8),
-              Text('Import Preset (.json)', style: TextStyle(fontSize: 13)),
-            ],
-          ),
-        ),
-      ],
+      itemBuilder: (context) => _buildMenuItems(),
+    );
+  }
+
+  List<PopupMenuEntry<String>> _buildMenuItems() => [
+    _buildItem('export', Icons.file_upload_outlined, 'Export Preset (.json)'),
+    _buildItem('import', Icons.file_download_outlined, 'Import Preset (.json)'),
+    _buildItem('snapshots', Icons.history, 'Snapshot History...'),
+  ];
+
+  PopupMenuItem<String> _buildItem(String value, IconData icon, String label) {
+    return PopupMenuItem<String>(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: AppTheme.primaryAmber),
+          const SizedBox(width: 8),
+          Expanded(child: Text(label, style: const TextStyle(fontSize: 13))),
+        ],
+      ),
     );
   }
 
@@ -107,33 +104,12 @@ class PresetsMenuButton extends ConsumerWidget {
 
     try {
       final jsonStr = await _readFileContent(picked);
-      if (jsonStr == null) return;
+      if (jsonStr == null || !context.mounted) return;
 
       final companions = ref
           .read(presetServiceProvider)
           .deserializePreset(jsonStr);
-
-      if (companions.isEmpty) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Preset contains no valid overrides.'),
-            ),
-          );
-        }
-        return;
-      }
-
-      final count = await ref.read(dbProvider).batchUpsertOverrides(companions);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Successfully imported $count overrides from preset!',
-            ),
-          ),
-        );
-      }
+      await _importCompanions(context, ref, companions);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -143,6 +119,30 @@ class PresetsMenuButton extends ConsumerWidget {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _importCompanions(
+    BuildContext context,
+    WidgetRef ref,
+    List<LocalizationsOverridesCompanion> companions,
+  ) async {
+    if (companions.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preset contains no valid overrides.')),
+        );
+      }
+      return;
+    }
+
+    final count = await ref.read(dbProvider).batchUpsertOverrides(companions);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Successfully imported $count overrides from preset!'),
+        ),
+      );
     }
   }
 

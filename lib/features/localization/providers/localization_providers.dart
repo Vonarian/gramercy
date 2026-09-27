@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/features/localization/models/localization_entry.dart';
 import 'package:gramercy/features/localization/providers/config_providers.dart';
 import 'package:gramercy/features/localization/providers/db_provider.dart';
 import 'package:gramercy/features/localization/providers/environment_providers.dart';
+import 'package:gramercy/features/localization/services/rebuild_service.dart';
+import 'package:gramercy/features/localization/services/snapshot_service.dart';
 import 'package:path/path.dart' as p;
 
 export 'package:gramercy/features/localization/models/localization_entry.dart';
@@ -12,6 +15,7 @@ export 'package:gramercy/features/localization/providers/config_providers.dart';
 export 'package:gramercy/features/localization/providers/db_provider.dart';
 export 'package:gramercy/features/localization/providers/environment_providers.dart';
 export 'package:gramercy/features/localization/providers/export_providers.dart';
+export 'package:gramercy/features/localization/services/snapshot_service.dart';
 
 /// 1. Base Game Strings (Loaded via Worker isolate)
 final baseStringsProvider = FutureProvider.family<Map<String, String>, String>((
@@ -34,16 +38,16 @@ final baseEntriesProvider = Provider.family<List<LocalizationEntry>, String>((
   if (base.isEmpty) return const [];
 
   return base.entries
-      .map((e) {
-        return LocalizationEntry(
+      .map(
+        (e) => LocalizationEntry(
           key: e.key,
           value: e.value,
           baseValue: e.value,
           isOverridden: false,
           lowerKey: e.key.toLowerCase(),
           lowerValue: e.value.toLowerCase(),
-        );
-      })
+        ),
+      )
       .toList(growable: false);
 });
 
@@ -124,9 +128,7 @@ class SearchQueryNotifier extends Notifier<String> {
       state = q;
       return;
     }
-    _timer = Timer(debounceDelay, () {
-      state = q;
-    });
+    _timer = Timer(debounceDelay, () => state = q);
   }
 
   void clear() {
@@ -156,9 +158,7 @@ final filteredStringsProvider =
       final query = ref.watch(searchQueryProvider).trim().toLowerCase();
       final filterMode = ref.watch(filterModeProvider);
 
-      if (query.isEmpty && filterMode == FilterMode.all) {
-        return allEntries;
-      }
+      if (query.isEmpty && filterMode == FilterMode.all) return allEntries;
 
       final results = <LocalizationEntry>[];
       final matchOverridden = filterMode == FilterMode.overriddenOnly;
@@ -174,3 +174,26 @@ final filteredStringsProvider =
 
       return results;
     });
+
+Directory _defaultSnapshotDirectory() {
+  final home = Platform.environment['HOME'] ?? '';
+  var base = Platform.environment['APPDATA'] ?? '';
+  if (!Platform.isWindows && home.isNotEmpty) {
+    base = Platform.isMacOS
+        ? '$home/Library/Application Support'
+        : '$home/.local/share';
+  }
+  final root = base.isEmpty ? Directory.systemTemp.path : base;
+  return Directory(p.join(root, 'gramercy', 'snapshots'));
+}
+
+final snapshotServiceProvider = Provider<SnapshotService>((ref) {
+  return SnapshotService(
+    db: ref.watch(dbProvider),
+    baseDir: _defaultSnapshotDirectory(),
+  );
+});
+
+final rebuildServiceProvider = Provider<RebuildService>((ref) {
+  return RebuildService(snapshotService: ref.watch(snapshotServiceProvider));
+});
