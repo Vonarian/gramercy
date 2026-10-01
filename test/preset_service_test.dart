@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gramercy/core/database/database.dart';
@@ -134,5 +135,17 @@ void main() {
         expect(companions[1].stringKey.value, equals('k4'));
       },
     );
+
+    test('deserializePreset parses bundled starter presets from disk', () {
+      final memePack = File('presets/meme_killfeed_pack.json')
+          .readAsStringSync();
+      final memeCompanions = presetService.deserializePreset(memePack);
+      expect(memeCompanions.length, equals(16));
+
+      final historyPack = File('presets/historical_realistic_designations.json')
+          .readAsStringSync();
+      final historyCompanions = presetService.deserializePreset(historyPack);
+      expect(historyCompanions.length, equals(21));
+    });
   });
 }

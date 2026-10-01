@@ -1,0 +1,113 @@
+{
+  "format": "gramercy_preset_v1",
+  "version": "1.0",
+  "source": "Gramercy Starter Preset: Historical Realistic Designations",
+  "exportedAt": "2026-10-01T22:00:00.000Z",
+  "overrides": [
+    {
+      "file": "units.csv",
+      "key": "us_m4a3_76w_sherman",
+      "value": "Medium Tank M4A3(76)W 'Easy Eight' Sherman"
+    },
+    {
+      "file": "units.csv",
+      "key": "us_m1a2_sep",
+      "value": "M1A2 System Enhancement Package (SEP v1) Abrams"
+    },
+    {
+      "file": "units.csv",
+      "key": "us_m1a2_sep_v2",
+      "value": "M1A2 System Enhancement Package (SEP v2) Abrams"
+    },
+    {
+      "file": "units.csv",
+      "key": "us_m3a3_bradley",
+      "value": "M3A3 Bradley Cavalry Fighting Vehicle"
+    },
+    {
+      "file": "units.csv",
+      "key": "germ_pzkpfw_VI_ausf_B_tiger_IIh",
+      "value": "Pz.Kpfw. VI Ausf. B 'Tiger II' (Henschel-Turm)"
+    },
+    {
+      "file": "units.csv",
+      "key": "germ_pzkpfw_VI_ausf_E_tiger",
+      "value": "Pz.Kpfw. VI Ausf. E 'Tiger I'"
+    },
+    {
+      "file": "units.csv",
+      "key": "germ_pzkpfw_V_ausf_a_panther",
+      "value": "Pz.Kpfw. V Ausf. A 'Panther'"
+    },
+    {
+      "file": "units.csv",
+      "key": "germ_leopard_2a7v",
+      "value": "Kampfpanzer Leopard 2A7V"
+    },
+    {
+      "file": "units.csv",
+      "key": "germ_leopard_2a6",
+      "value": "Kampfpanzer Leopard 2A6"
+    },
+    {
+      "file": "units.csv",
+      "key": "ussr_t_34_85_d_5t",
+      "value": "T-34-85 Obr. 1943g. (D-5T)"
+    },
+    {
+      "file": "units.csv",
+      "key": "ussr_t_80bvm",
+      "value": "T-80BVM Main Battle Tank (Relikt ERA)"
+    },
+    {
+      "file": "units.csv",
+      "key": "ussr_t_90m",
+      "value": "T-90M 'Proryv-3' Main Battle Tank"
+    },
+    {
+      "file": "units.csv",
+      "key": "ussr_bmp_2m",
+      "value": "BMP-2M 'Berezhok' Infantry Fighting Vehicle"
+    },
+    {
+      "file": "units.csv",
+      "key": "uk_challenger_2_tes",
+      "value": "FV4034 Challenger 2 TES 'Megatron'"
+    },
+    {
+      "file": "units.csv",
+      "key": "jp_type_10",
+      "value": "Type 10 Main Battle Tank (Hitomaru)"
+    },
+    {
+      "file": "units.csv",
+      "key": "f_15a",
+      "value": "McDonnell Douglas F-15A 'Eagle'"
+    },
+    {
+      "file": "units.csv",
+      "key": "f_15c",
+      "value": "McDonnell Douglas F-15C 'Golden Eagle'"
+    },
+    {
+      "file": "units.csv",
+      "key": "f_16a_block_15",
+      "value": "General Dynamics F-16A Fighting Falcon Block 15"
+    },
+    {
+      "file": "units.csv",
+      "key": "su_su_27",
+      "value": "Sukhoi Su-27S 'Flanker-B'"
+    },
+    {
+      "file": "units.csv",
+      "key": "mig_29_9_12",
+      "value": "Mikoyan-Gurevich MiG-29 (9-12) 'Fulcrum-A'"
+    },
+    {
+      "file": "units.csv",
+      "key": "eurofighter_typhoon",
+      "value": "Eurofighter Typhoon EF-2000"
+    }
+  ]
+}
