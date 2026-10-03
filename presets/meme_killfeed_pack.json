@@ -2,87 +2,87 @@
   "format": "gramercy_preset_v1",
   "version": "1.0",
   "source": "Gramercy Starter Preset: Classic Memes & Tactical Kill Feed",
-  "exportedAt": "2026-10-01T22:00:00.000Z",
+  "exportedAt": "2026-10-03T10:00:00.000Z",
   "overrides": [
     {
       "file": "menu.csv",
-      "key": "btn_battle",
+      "key": "mainmenu/toBattle",
       "value": "SUFFER IN BATTLE!"
     },
     {
       "file": "menu.csv",
-      "key": "menu/silver_lions",
-      "value": "Snail Shekels (SL)"
+      "key": "mainmenu/toBattle/short",
+      "value": "SUFFER IN BATTLE!"
     },
     {
       "file": "menu.csv",
-      "key": "menu/golden_eagles",
-      "value": "Snail Tax Dollars (GE)"
-    },
-    {
-      "file": "menu.csv",
-      "key": "menu/research",
-      "value": "The Endless Tech Tree"
-    },
-    {
-      "file": "ui.csv",
-      "key": "HUD_TARGET_DESTROYED",
+      "key": "exp_reasons/kill_gm",
       "value": "TARGET OBLITERATED"
     },
     {
-      "file": "ui.csv",
-      "key": "HUD_AIRCRAFT_DESTROYED",
+      "file": "menu.csv",
+      "key": "exp_reasons/kill",
       "value": "SENT BACK TO HANGAR"
     },
     {
-      "file": "ui.csv",
-      "key": "HUD_GROUND_TARGET_DESTROYED",
-      "value": "ARMOR SHATTERED"
+      "file": "menu.csv",
+      "key": "exp_reasons/kill_ucav",
+      "value": "DRONE DELETED"
     },
     {
-      "file": "ui.csv",
-      "key": "HUD_HIT",
+      "file": "menu.csv",
+      "key": "exp_reasons/critical_hit",
+      "value": "EMOTIONAL DAMAGE (Crit!)"
+    },
+    {
+      "file": "menu.csv",
+      "key": "exp_reasons/hit",
       "value": "TICKLE (+10 SL)"
     },
     {
-      "file": "ui.csv",
-      "key": "HUD_CRITICAL_HIT",
-      "value": "DEVASTATING BLOW!"
+      "file": "menu.csv",
+      "key": "exp_reasons/ineffective_hit",
+      "value": "BIAS BOUNCE (No Pen)"
+    },
+    {
+      "file": "menu.csv",
+      "key": "exp_reasons/severe_damage",
+      "value": "FOLDED LIKE A LAWN CHAIR"
+    },
+    {
+      "file": "menu.csv",
+      "key": "exp_reasons/assist",
+      "value": "KILL STOLEN (Assist)"
+    },
+    {
+      "file": "menu.csv",
+      "key": "exp_reasons/scout_kill",
+      "value": "WALLHACK ASSIST"
+    },
+    {
+      "file": "menu.csv",
+      "key": "exp_reasons/capture",
+      "value": "CAP SECURED"
     },
     {
       "file": "ui.csv",
-      "key": "HUD_FIRE",
-      "value": "INSTANT TANK BBQ"
+      "key": "death/crewDeath",
+      "value": "CREW TAKING A DIRT NAP"
     },
     {
       "file": "ui.csv",
-      "key": "HUD_AMMO_EXPLODED",
+      "key": "death/ammoExplosion",
       "value": "TURRET TOSS CHAMPION (Ammo Detonated)"
     },
     {
       "file": "ui.csv",
-      "key": "HUD_CREW_KNOCKED_OUT",
-      "value": "CREW TAKING A DIRT NAP"
+      "key": "death/ammoFire",
+      "value": "INSTANT TANK BBQ"
     },
     {
-      "file": "hud.csv",
-      "key": "hud/kill_message_0",
-      "value": "vaporized"
-    },
-    {
-      "file": "hud.csv",
-      "key": "hud/kill_message_1",
-      "value": "sent to the shadow realm"
-    },
-    {
-      "file": "hud.csv",
-      "key": "hud/kill_message_2",
-      "value": "folded like a lawn chair"
-    },
-    {
-      "file": "missions.csv",
-      "key": "radio/thank_you",
-      "value": "Gramercy! [T-3-4]"
+      "file": "pc_UiMessages.csv",
+      "key": "steam/timeline/kill",
+      "value": "TARGET OBLITERATED"
     }
   ]
 }
