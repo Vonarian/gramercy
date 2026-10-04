@@ -581,30 +581,36 @@
       }
 
       /* --------------------------------------------------------
-         SCENE 4: 1-CLICK UPDATE SURVIVAL (8.0s - 10.0s)
+         SCENE 4: LIVE IN-GAME WAR THUNDER PROOF (8.0s - 10.0s)
          -------------------------------------------------------- */
       #scene-4 {
-        background: #06130E;
+        background: #070A0F;
         color: #F8FAFC;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 100px 120px;
+        padding: 72px 90px 68px 90px;
         text-align: center;
+      }
+      .s4-header-row {
+        width: 100%;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 18px;
       }
       .s4-header-tag {
         font-family: 'JetBrainsMono', monospace;
         font-size: 13px;
-        letter-spacing: 0.25em;
+        letter-spacing: 0.22em;
         text-transform: uppercase;
-        color: #34D399;
-        margin-bottom: 10px;
+        color: #F59E0B;
       }
       .s4-title {
         font-family: 'Syne', sans-serif;
         font-weight: 800;
-        font-size: 88px;
+        font-size: 52px;
         letter-spacing: -0.03em;
         text-transform: uppercase;
         line-height: 1.0;
@@ -613,121 +619,159 @@
       .s4-subtitle {
         font-family: 'InstrumentSerif', serif;
         font-style: italic;
-        font-size: 38px;
-        color: #6EE7B7;
-        margin-top: 10px;
-        margin-bottom: 40px;
+        font-size: 30px;
+        color: #38BDF8;
       }
-      .s4-pipeline {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 24px;
-        margin-bottom: 40px;
+      .s4-grid {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 375px 375px;
+        gap: 20px;
       }
-      .s4-step {
-        background: rgba(16, 185, 129, 0.08);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-        border-radius: 8px;
-        padding: 22px 28px;
-        width: 320px;
-        text-align: left;
+      .s4-shot-card {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: #0D1117;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
       }
-      .s4-step-num {
+      .s4-shot-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .s4-shot-badge {
+        position: absolute;
+        bottom: 14px;
+        left: 14px;
         font-family: 'JetBrainsMono', monospace;
-        font-size: 12px;
-        letter-spacing: 0.16em;
-        color: #34D399;
-        text-transform: uppercase;
-        margin-bottom: 6px;
-      }
-      .s4-step-title {
-        font-family: 'Syne', sans-serif;
-        font-weight: 700;
-        font-size: 24px;
-        text-transform: uppercase;
-        color: #F8FAFC;
-        margin-bottom: 4px;
-      }
-      .s4-step-desc {
-        font-family: 'Inter', sans-serif;
         font-size: 13px;
-        color: #94A3B8;
-      }
-      .s4-arrow {
-        font-family: 'JetBrainsMono', monospace;
-        font-size: 32px;
-        color: #10B981;
-      }
-      .s4-seal {
-        font-family: 'JetBrainsMono', monospace;
-        font-size: 14px;
-        letter-spacing: 0.18em;
-        padding: 10px 24px;
-        border-radius: 6px;
-        background: rgba(16, 185, 129, 0.15);
-        border: 1px solid #10B981;
-        color: #6EE7B7;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        padding: 7px 14px;
+        border-radius: 5px;
+        background: rgba(8, 10, 15, 0.9);
+        border: 1px solid #F59E0B;
+        color: #FDE68A;
         text-transform: uppercase;
+      }
+      .s4-shot-key {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        padding: 4px 10px;
+        border-radius: 4px;
+        background: rgba(8, 10, 15, 0.88);
+        border: 1px solid rgba(56, 189, 248, 0.5);
+        color: #7DD3FC;
       }
 
       /* --------------------------------------------------------
-         SCENE 5: 100% BATTLEYE SAFE (10.0s - 12.0s)
+         SCENE 5: 100% BATTLEYE SAFE + PATCH SURVIVAL (10.0s - 12.0s)
          -------------------------------------------------------- */
       #scene-5 {
-        background: #090B0F;
+        background: #06130E;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        padding: 80px 100px;
       }
       .s5-shield-icon {
-        width: 90px;
-        height: 90px;
+        width: 76px;
+        height: 76px;
         border-radius: 50%;
         border: 2px solid #10B981;
-        background: rgba(16, 185, 129, 0.1);
+        background: rgba(16, 185, 129, 0.12);
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 24px;
+        margin-bottom: 16px;
       }
       .s5-shield-icon svg {
-        width: 48px;
-        height: 48px;
+        width: 40px;
+        height: 40px;
         fill: #10B981;
       }
       .s5-title {
         font-family: 'Syne', sans-serif;
         font-weight: 800;
-        font-size: 96px;
+        font-size: 84px;
         letter-spacing: -0.03em;
         text-transform: uppercase;
         color: #F8FAFC;
         text-align: center;
+        line-height: 0.96;
       }
       .s5-subtitle {
         font-family: 'InstrumentSerif', serif;
         font-style: italic;
-        font-size: 44px;
-        color: #10B981;
-        margin-top: 10px;
+        font-size: 38px;
+        color: #6EE7B7;
+        margin-top: 8px;
         letter-spacing: -0.01em;
+      }
+      .s5-pipeline {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        margin-top: 26px;
+      }
+      .s5-step {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.38);
+        border-radius: 8px;
+        padding: 16px 24px;
+        width: 310px;
+        text-align: left;
+      }
+      .s5-step-num {
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        color: #34D399;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+      .s5-step-title {
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 22px;
+        text-transform: uppercase;
+        color: #F8FAFC;
+        margin-bottom: 2px;
+      }
+      .s5-step-desc {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        color: #CBD5E1;
+      }
+      .s5-arrow {
+        font-family: 'JetBrainsMono', monospace;
+        font-size: 28px;
+        color: #34D399;
       }
       .s5-pills {
         display: flex;
         gap: 16px;
-        margin-top: 36px;
+        margin-top: 26px;
       }
       .s5-pill {
         font-family: 'JetBrainsMono', monospace;
-        font-size: 13px;
+        font-size: 12px;
         letter-spacing: 0.14em;
         padding: 8px 18px;
         border-radius: 4px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        color: #E2E8F0;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #F8FAFC;
         text-transform: uppercase;
       }
 
@@ -1036,40 +1080,40 @@
       </div>
 
       <!-- ========================================================
-           SCENE 4: 1-CLICK UPDATE SURVIVAL (8.0s - 10.0s)
+           SCENE 4: LIVE IN-GAME WAR THUNDER PROOF (8.0s - 10.0s)
            ======================================================== -->
       <div class="scene" id="scene-4">
-        <div class="s4-header-tag" id="s4-tag">IN-APP RECOVERY ENGINE</div>
-        <div class="s4-title" id="s4-title">SURVIVE EVERY PATCH</div>
-        <div class="s4-subtitle" id="s4-subtitle">War Thunder updates the game. Gramercy restores your custom text.</div>
-        
-        <div class="s4-pipeline" id="s4-pipe">
-          <div class="s4-step" id="s4-s1">
-            <div class="s4-step-num">STEP 01</div>
-            <div class="s4-step-title">PURGE CACHE</div>
-            <div class="s4-step-desc">Clears old temporary files safely</div>
-          </div>
-          <div class="s4-arrow" id="s4-a1">&rarr;</div>
-          <div class="s4-step" id="s4-s2">
-            <div class="s4-step-num">STEP 02</div>
-            <div class="s4-step-title">AUTO-DUMP</div>
-            <div class="s4-step-desc">Fresh vanilla strings from game</div>
-          </div>
-          <div class="s4-arrow" id="s4-a2">&rarr;</div>
-          <div class="s4-step" id="s4-s3">
-            <div class="s4-step-num">STEP 03</div>
-            <div class="s4-step-title">APPLY DELTAS</div>
-            <div class="s4-step-desc">100% overrides restored in 1 click</div>
-          </div>
+        <div class="s4-header-row">
+          <div class="s4-header-tag" id="s4-tag">[ LIVE IN-GAME PROOF ]</div>
+          <div class="s4-title" id="s4-title">YOUR WORDS. THEIR WORLD.</div>
+          <div class="s4-subtitle" id="s4-subtitle">real matches &bull; real overrides &bull; zero tampering</div>
         </div>
-
-        <div class="s4-seal" id="s4-seal">
-          &check; 100% OVERRIDES PRESERVED &bull; ZERO DATA LOSS GUARANTEE
+        <div class="s4-grid" id="s4-grid">
+          <div class="s4-shot-card" id="s4-c1">
+            <img src="assets/images/wt_hangar.jpg" class="s4-shot-img" alt="War Thunder Hangar" />
+            <div class="s4-shot-badge">SUFFER IN BATTLE!</div>
+            <div class="s4-shot-key">exp_reasons/kill_mission</div>
+          </div>
+          <div class="s4-shot-card" id="s4-c2">
+            <img src="assets/images/wt_tickle.jpg" class="s4-shot-img" alt="War Thunder Hit" />
+            <div class="s4-shot-badge">TICKLE (+10 SL)</div>
+            <div class="s4-shot-key">exp_reasons/hit</div>
+          </div>
+          <div class="s4-shot-card" id="s4-c3">
+            <img src="assets/images/wt_hangar_sent.jpg" class="s4-shot-img" alt="War Thunder Kill" />
+            <div class="s4-shot-badge">SENT BACK TO HANGAR</div>
+            <div class="s4-shot-key">exp_reasons/kill_air</div>
+          </div>
+          <div class="s4-shot-card" id="s4-c4">
+            <img src="assets/images/wt_obliterated.jpg" class="s4-shot-img" alt="War Thunder Kill" />
+            <div class="s4-shot-badge">TARGET OBLITERATED</div>
+            <div class="s4-shot-key">exp_reasons/kill_gm</div>
+          </div>
         </div>
       </div>
 
       <!-- ========================================================
-           SCENE 5: 100% BATTLEYE SAFE (10.0s - 12.0s)
+           SCENE 5: 100% BATTLEYE SAFE + PATCH SURVIVAL (10.0s - 12.0s)
            ======================================================== -->
       <div class="scene" id="scene-5">
         <div class="s5-shield-icon" id="s5-icon">
@@ -1079,6 +1123,25 @@
         </div>
         <div class="s5-title" id="s5-title">100% BATTLEYE SAFE</div>
         <div class="s5-subtitle" id="s5-subtitle">official gaijin config.blk hook &bull; zero memory injection</div>
+        <div class="s5-pipeline" id="s5-pipe">
+          <div class="s5-step" id="s5-s1">
+            <div class="s5-step-num">STEP 01</div>
+            <div class="s5-step-title">PURGE CACHE</div>
+            <div class="s5-step-desc">Clears old temporary files safely</div>
+          </div>
+          <div class="s5-arrow" id="s5-a1">&rarr;</div>
+          <div class="s5-step" id="s5-s2">
+            <div class="s5-step-num">STEP 02</div>
+            <div class="s5-step-title">AUTO-DUMP</div>
+            <div class="s5-step-desc">Fresh vanilla strings from game</div>
+          </div>
+          <div class="s5-arrow" id="s5-a2">&rarr;</div>
+          <div class="s5-step" id="s5-s3">
+            <div class="s5-step-num">STEP 03</div>
+            <div class="s5-step-title">APPLY DELTAS</div>
+            <div class="s5-step-desc">100% overrides restored in 1 click</div>
+          </div>
+        </div>
         <div class="s5-pills" id="s5-pills">
           <span class="s5-pill">ZERO PROCESS INJECTION</span>
           <span class="s5-pill">PURE CSV SYNTHESIS</span>
@@ -1161,7 +1224,7 @@
           else if (t < 4.0) chapterDisplay.textContent = "[ 02 - KINETIC BEAT";
           else if (t < 6.0) chapterDisplay.textContent = "[ 03 - DELTA VAULT";
           else if (t < 8.0) chapterDisplay.textContent = "[ 04 - LIVE COCKPIT";
-          else if (t < 10.0) chapterDisplay.textContent = "[ 05 - 1-CLICK RECOVERY";
+          else if (t < 10.0) chapterDisplay.textContent = "[ 05 - IN-GAME PROOF";
           else if (t < 12.0) chapterDisplay.textContent = "[ 06 - BATTLEYE SAFE";
           else if (t < 13.0) {
             chapterDisplay.textContent = "[ 07 - CORE ENGINE";
@@ -1404,63 +1467,65 @@
       tl.set("#scene-3", { display: "none" }, 8.0);
 
       // ========================================================
-      // SCENE 4: 1-CLICK UPDATE SURVIVAL (8.0s - 10.0s) - Bass Hit!
+      // SCENE 4: LIVE IN-GAME WAR THUNDER PROOF (8.0s - 10.0s)
       // ========================================================
       tl.set("#scene-4", { display: "flex", opacity: 1 }, 8.0);
 
-      // Beat 1 (8.0s): Bass Hit (RMS 14,056)! Title slams down!
-      tl.fromTo("#s4-title",
-        { opacity: 0, scale: 1.35 },
-        { opacity: 1, scale: 1, duration: 0.2, ease: "back.out(2)" },
-        8.0
-      );
+      // Beat 1 (8.0s): Bass Hit! Header row + all 4 cards slam in together
       tl.fromTo("#s4-tag",
         { opacity: 0, y: -10 },
         { opacity: 1, y: 0, duration: 0.15, ease: "power2.out" },
         8.0
       );
+      tl.fromTo("#s4-title",
+        { opacity: 0, scale: 1.25 },
+        { opacity: 1, scale: 1, duration: 0.2, ease: "back.out(2)" },
+        8.0
+      );
       tl.fromTo("#s4-subtitle",
-        { opacity: 0, y: 12 },
+        { opacity: 0, y: 10 },
         { opacity: 1, y: 0, duration: 0.18, ease: "power2.out" },
         8.15
       );
 
-      // Beat 2 (8.5s): Kick! Step 01 slams in!
-      tl.fromTo("#s4-s1",
-        { opacity: 0, y: 20, scale: 0.92 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.2, ease: "back.out(1.8)" },
+      // Beat 2 (8.5s): Top row slams in (Hangar + Tickle)
+      tl.fromTo("#s4-c1",
+        { opacity: 0, scale: 0.9, rotateY: -8 },
+        { opacity: 1, scale: 1, rotateY: 0, duration: 0.22, ease: "back.out(1.8)" },
         8.5
       );
+      tl.fromTo("#s4-c2",
+        { opacity: 0, scale: 0.9, rotateY: 8 },
+        { opacity: 1, scale: 1, rotateY: 0, duration: 0.22, ease: "back.out(1.8)" },
+        8.6
+      );
 
-      // Beat 3 (9.0s): Snare (RMS 12,740)! Arrow ➔ Step 02 slams in!
-      tl.fromTo(["#s4-a1", "#s4-s2"],
-        { opacity: 0, y: 20, scale: 0.92 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.2, ease: "back.out(1.8)" },
+      // Beat 3 (9.0s): Bottom row slams in (Sent + Obliterated)
+      tl.fromTo("#s4-c3",
+        { opacity: 0, scale: 0.9, rotateY: -8 },
+        { opacity: 1, scale: 1, rotateY: 0, duration: 0.22, ease: "back.out(1.8)" },
         9.0
       );
-
-      // Beat 4 (9.5s): Kick (RMS 12,917)! Arrow ➔ Step 03 slams in!
-      tl.fromTo(["#s4-a2", "#s4-s3"],
-        { opacity: 0, y: 20, scale: 0.92 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.2, ease: "back.out(1.8)" },
-        9.5
+      tl.fromTo("#s4-c4",
+        { opacity: 0, scale: 0.9, rotateY: 8 },
+        { opacity: 1, scale: 1, rotateY: 0, duration: 0.22, ease: "back.out(1.8)" },
+        9.1
       );
 
-      // Pickup (9.75s): Seal stamps down!
-      tl.fromTo("#s4-seal",
-        { opacity: 0, scale: 0.8 },
-        { opacity: 1, scale: 1, duration: 0.18, ease: "back.out(2.5)" },
-        9.75
+      // Beat 4 (9.5s): Card glow pulse — proof they're real
+      tl.to(".s4-shot-card",
+        { boxShadow: "0 0 40px rgba(245,158,11,0.55)", duration: 0.15, yoyo: true, repeat: 1 },
+        9.5
       );
       tl.to("#scene-4", { opacity: 0, duration: 0.04 }, 9.96);
       tl.set("#scene-4", { display: "none" }, 10.0);
 
       // ========================================================
-      // SCENE 5: 100% BATTLEYE SAFE (10.0s - 12.0s) - Bass Drop!
+      // SCENE 5: 100% BATTLEYE SAFE + PATCH SURVIVAL (10.0s - 12.0s)
       // ========================================================
       tl.set("#scene-5", { display: "flex", opacity: 1 }, 10.0);
 
-      // Beat 1 (10.0s): Bass Drop (RMS 20,681)! Shield + Title slam simultaneously!
+      // Beat 1 (10.0s): Bass Drop! Shield + Title slam simultaneously!
       tl.fromTo("#s5-icon",
         { scale: 0.3, opacity: 0 },
         { scale: 1, opacity: 1, duration: 0.2, ease: "back.out(2.2)" },
@@ -1472,20 +1537,35 @@
         10.0
       );
 
-      // Beat 2 (10.5s): Kick! Official Gaijin hook subtitle snaps in!
+      // Beat 2 (10.5s): Official Gaijin hook subtitle + shield pulse!
       tl.fromTo("#s5-subtitle",
         { opacity: 0, y: 12 },
         { opacity: 1, y: 0, duration: 0.18, ease: "power2.out" },
         10.5
       );
-
-      // Beat 3 (11.0s): Snare! Security pulse on shield!
       tl.to("#s5-icon",
         { filter: "drop-shadow(0 0 25px #10B981)", duration: 0.18, yoyo: true, repeat: 1 },
-        11.0
+        10.5
       );
 
-      // Beat 4 (11.5s): Kick (RMS 12,526)! Security badges punch in!
+      // Beat 3 (11.0s): 3-step pipeline slams in one at a time
+      tl.fromTo("#s5-s1",
+        { opacity: 0, y: 20, scale: 0.92 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.18, ease: "back.out(1.8)" },
+        11.0
+      );
+      tl.fromTo(["#s5-a1", "#s5-s2"],
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.18, ease: "back.out(1.8)" },
+        11.18
+      );
+      tl.fromTo(["#s5-a2", "#s5-s3"],
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.18, ease: "back.out(1.8)" },
+        11.36
+      );
+
+      // Beat 4 (11.5s): Security badges punch in!
       tl.fromTo("#s5-pills",
         { opacity: 0, y: 20, scale: 0.9 },
         { opacity: 1, y: 0, scale: 1, duration: 0.2, ease: "back.out(1.8)" },
