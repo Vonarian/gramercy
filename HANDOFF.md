@@ -58,7 +58,7 @@ All times are aligned for maximum European evening + US East Coast morning/lunch
    - URL: [https://github.com/Vonarian/gramercy/releases/new](https://github.com/Vonarian/gramercy/releases/new)
    - Tag: `v1.4.0` (target `main`)
    - Title: `Gramercy v1.4.0 — War Thunder Localization Cockpit & Community Delta Vault`
-   - Body: Copy directly from [`docs/marketing/release_notes_v1.4.0.md`](file:///d:/src/gramercy/docs/marketing/release_notes_v1.4.0.md).
+   - Body: Copy directly from [`CHANGELOG.md`](file:///d:/src/gramercy/CHANGELOG.md#1.4.0) or [`docs/marketing/LAUNCH_PLAYBOOK.md`](file:///d:/src/gramercy/docs/marketing/LAUNCH_PLAYBOOK.md).
    - Attach: Release binaries and the two `.json` preset files in [`presets/`](file:///d:/src/gramercy/presets/).
 
 ---
@@ -70,7 +70,7 @@ All times are aligned for maximum European evening + US East Coast morning/lunch
    - Portal: [live.warthunder.com](https://live.warthunder.com)
    - Category: **Sounds & Language** / **Game Modifications**
    - Title: `Gramercy v1.4.0: Modern Localization Cockpit & Delta Vault (100% Patch-Proof)`
-   - Text Copy: Copy from [`docs/marketing/wt_live_post.md`](file:///d:/src/gramercy/docs/marketing/wt_live_post.md).
+   - Text Copy: Copy from [`docs/marketing/WAR_THUNDER_LIVE_POST.md`](file:///d:/src/gramercy/docs/marketing/WAR_THUNDER_LIVE_POST.md).
    - Images to attach:
      - Cover: `docs/screenshots/cockpit_populated.png`
      - Action shots: `docs/screenshots/wt_target_obliterated.jpg`, `docs/screenshots/wt_sent_back_to_hangar.jpg`, `docs/screenshots/wt_hangar_custom.jpg`.
@@ -87,7 +87,7 @@ All times are aligned for maximum European evening + US East Coast morning/lunch
      > *Tired of War Thunder patches wiping your custom kill messages? I built Gramercy — a free, open-source tool that keeps vanilla files untouched and restores your strings in 1 click [v1.4.0]*
    - Flair: `Datamine / Custom Content` or `Other`
 3. **First Comment (Within 60 Seconds)**:
-   - Post the comprehensive explanatory comment copied from [`docs/marketing/reddit_post.md`](file:///d:/src/gramercy/docs/marketing/reddit_post.md) (features, presets, safety notes, and GitHub link).
+   - Post the comprehensive explanatory comment copied from [`docs/marketing/REDDIT_LAUNCH_POST.md`](file:///d:/src/gramercy/docs/marketing/REDDIT_LAUNCH_POST.md) (features, presets, safety notes, and GitHub link).
 
 ---
 
@@ -103,8 +103,8 @@ All times are aligned for maximum European evening + US East Coast morning/lunch
 ## 4. Documentation Reference Index
 
 All detailed promotional copy and step-by-step guides reside in `docs/marketing/`:
-* 📄 [`docs/marketing/launch_schedule_and_checklist.md`](file:///d:/src/gramercy/docs/marketing/launch_schedule_and_checklist.md) — Comprehensive timeline & checklist
-* 📄 [`docs/marketing/release_notes_v1.4.0.md`](file:///d:/src/gramercy/docs/marketing/release_notes_v1.4.0.md) — GitHub release notes
-* 📄 [`docs/marketing/reddit_post.md`](file:///d:/src/gramercy/docs/marketing/reddit_post.md) — Complete Reddit post title & comment copy
-* 📄 [`docs/marketing/wt_live_post.md`](file:///d:/src/gramercy/docs/marketing/wt_live_post.md) — WT Live mod page description
-* 📄 [`docs/marketing/distribution_strategy.md`](file:///d:/src/gramercy/docs/marketing/distribution_strategy.md) — Audience segmentation and engagement playbook
+* 📄 [`docs/marketing/LAUNCH_PLAYBOOK.md`](file:///d:/src/gramercy/docs/marketing/LAUNCH_PLAYBOOK.md) — Comprehensive timeline & distribution strategy
+* 📄 [`docs/marketing/REDDIT_LAUNCH_POST.md`](file:///d:/src/gramercy/docs/marketing/REDDIT_LAUNCH_POST.md) — Complete Reddit post title & comment copy
+* 📄 [`docs/marketing/WAR_THUNDER_LIVE_POST.md`](file:///d:/src/gramercy/docs/marketing/WAR_THUNDER_LIVE_POST.md) — WT Live mod page description
+* 📄 [`docs/marketing/SHORT_FORM_VIDEO_SCRIPTS.md`](file:///d:/src/gramercy/docs/marketing/SHORT_FORM_VIDEO_SCRIPTS.md) — TikTok / Shorts 30s/45s/60s scripts
+* 📄 [`docs/marketing/CREATOR_OUTREACH_KIT.md`](file:///d:/src/gramercy/docs/marketing/CREATOR_OUTREACH_KIT.md) — Creator email & DM outreach kit
