@@ -145,13 +145,27 @@ class SnapshotService {
     return null;
   }
 
+  /// Resolves the on-disk file backing [snapshotId].
+  ///
+  /// Guarded by [_isSafeSnapshotId]: an id that is not a strict single path
+  /// segment yields `null` before any path construction. Snapshot ids come
+  /// from snapshot JSON metadata and may be attacker-chosen text if the
+  /// vault file is tampered with; unguarded, `..\victim`, `../victim`, or an
+  /// absolute drive path would escape [baseDir] through [p.join] and let
+  /// [deleteSnapshot] and [restoreSnapshot] target arbitrary files (F2-4).
   Future<File?> _findSnapshotFile(String snapshotId) async {
+    if (!_isSafeSnapshotId(snapshotId)) return null;
+
     final direct = File(p.join(baseDir.path, '$snapshotId.json'));
     if (await direct.exists()) return direct;
 
+    // Raw-name fallback: still safe because the guard guarantees the id has
+    // no separators or drive/stream syntax, so it stays inside [baseDir].
     final directAsIs = File(p.join(baseDir.path, snapshotId));
     if (await directAsIs.exists()) return directAsIs;
 
+    // Metadata-enumeration fallback: structurally safe (only inspects files
+    // enumerated under [baseDir]) and compared against their id metadata.
     if (!await baseDir.exists()) return null;
     final entities = await baseDir.list().toList();
     for (final entity in entities.whereType<File>()) {
@@ -160,5 +174,20 @@ class SnapshotService {
       if (meta?.id == snapshotId) return entity;
     }
     return null;
+  }
+
+  /// A snapshot id is safe only when it is a strict single path segment:
+  /// non-empty, with no surrounding whitespace, no separators, no drive /
+  /// NTFS-stream colon syntax, not a relative-name reserve, and unchanged
+  /// by [p.basename].
+  bool _isSafeSnapshotId(String id) {
+    return id.isNotEmpty &&
+        id == id.trim() &&
+        !id.contains('/') &&
+        !id.contains(r'\') &&
+        !id.contains(':') &&
+        id != '.' &&
+        id != '..' &&
+        p.basename(id) == id;
   }
 }
