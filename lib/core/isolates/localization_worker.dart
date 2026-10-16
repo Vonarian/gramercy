@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:gramercy/core/isolates/config_blk_service.dart';
 import 'package:gramercy/core/isolates/csv_export_worker.dart';
+import 'package:gramercy/core/isolates/wt_csv_text.dart';
 import 'package:gramercy/features/localization/models/localization_entry.dart';
 import 'package:worker_manager/worker_manager.dart';
 
@@ -41,9 +43,13 @@ Future<Map<String, String>> parseCsvWorker(CsvTaskParameters params) async {
     return {};
   }
 
-  var content = await file.readAsString();
-  if (content.startsWith('\uFEFF')) {
-    content = content.substring(1);
+  // F2-6 (display path only): tolerate legacy non-UTF-8 community packs by
+  // decoding with replacement characters instead of failing on the first
+  // invalid byte. The export read path stays strict (fail-closed).
+  final bytes = await file.readAsBytes();
+  var content = utf8.decode(bytes, allowMalformed: true);
+  if (content.startsWith(wtCsvBom)) {
+    content = content.substring(wtCsvBom.length);
   }
 
   final lines = content.replaceAll('\r\n', '\n').split('\n');
@@ -53,7 +59,8 @@ Future<Map<String, String>> parseCsvWorker(CsvTaskParameters params) async {
     final line = lines[i].trim();
     if (line.isEmpty) continue;
 
-    final cols = line.split(';');
+    // F2-3: quote-aware split; raw columns keep cleanWtString semantics.
+    final cols = splitWtLine(line);
     if (cols.length >= 2) {
       final key = cleanWtString(cols[0]);
       if (key.isNotEmpty) {
