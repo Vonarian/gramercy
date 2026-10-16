@@ -131,6 +131,23 @@ When downloading release executables on Windows, you may encounter a blue **Wind
 > **How to launch:**  
 > Click **"More info"** ➔ Click **"Run anyway"**. The binary is built transparently via GitHub Actions from this open-source codebase.
 
+### Verify Before You Run Anyway
+
+"Run anyway" is precisely the reflex malware distributors train into people, so pair it with a checksum. We still don't code-sign the builds (see the certificate pricing above), but **every release publishes the three build archives *and* a `SHA256SUMS.txt` manifest alongside them**, so you can prove the archive you got is the one CI built:
+
+```powershell
+# Windows (cmd or PowerShell)
+certutil -hashfile gramercy-windows-x64.zip SHA256
+```
+
+```bash
+# macOS / Linux
+shasum -a 256 gramercy-macos.zip
+```
+
+> [!TIP]
+> **Where to find `SHA256SUMS.txt`:** open the [Releases page](https://github.com/Vonarian/gramercy/releases), open your release, and expand the **Assets** list under the release notes — `SHA256SUMS.txt` is served next to `gramercy-windows-x64.zip`, `gramercy-linux-x64.tar.gz`, and `gramercy-macos.zip`. Drop it into the same folder as your archive, hash the archive with the one-liner above, and compare against the matching line (digests match case-insensitively; on Linux/macOS `sha256sum -c SHA256SUMS.txt` checks everything in one shot). Hash matches — the **"Run anyway"** click has been earned. Hash doesn't — the archive is not ours; delete it and re-download straight from the release page.
+
 ---
 
 ## 7. Under the Hood: Architecture
@@ -208,7 +225,7 @@ flowchart TD
 
 ### Pre-Built Desktop Binaries
 
-Download the ready-to-run package for your platform from the **[Latest Release](https://github.com/Vonarian/gramercy/releases/latest)**:
+Download the ready-to-run package for your platform from the **[Latest Release](https://github.com/Vonarian/gramercy/releases/latest)**. Each release also publishes a `SHA256SUMS.txt` checksum manifest next to the archives — see the [verification commands](#6-windows-smartscreen-advisory) in section 6 before you launch anything:
 
 | Platform | Package Archive | Quick Start |
 | :--- | :--- | :--- |
