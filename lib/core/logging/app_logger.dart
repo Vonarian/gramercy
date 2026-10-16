@@ -7,6 +7,10 @@ import 'log_entry.dart';
 class AppLogger {
   static final AppLogger instance = AppLogger();
 
+  /// Collapses CR/LF (log-forging vector) in dynamic content before interpolation.
+  static String scrub(String raw) =>
+      raw.replaceAll('\r\n', ' ').replaceAll('\n', ' ').replaceAll('\r', ' ');
+
   LogLevel minLevel;
   bool consoleOutput;
   bool fileOutput;

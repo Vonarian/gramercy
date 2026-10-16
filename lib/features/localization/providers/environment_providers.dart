@@ -9,6 +9,24 @@ final workerServiceProvider = Provider<LocalizationWorkerService>((ref) {
   return LocalizationWorkerService();
 });
 
+/// Lists the real (non-symlink) csv files inside [langDir], basenames only.
+/// Symbolic links are excluded so hostile packs cannot expose files that
+/// live outside the lang dir (F1-2). Unit-testable without providers.
+Future<List<String>> visibleLangCsvFiles(Directory langDir) async {
+  final csvFiles = <String>[];
+  await for (final entity in langDir.list()) {
+    if (_isLink(entity)) continue;
+    if (entity is File && entity.path.toLowerCase().endsWith('.csv')) {
+      csvFiles.add(p.basename(entity.path));
+    }
+  }
+  return csvFiles;
+}
+
+bool _isLink(FileSystemEntity entity) =>
+    FileSystemEntity.typeSync(entity.path, followLinks: false) ==
+    FileSystemEntityType.link;
+
 final availableFilesProvider = FutureProvider<List<String>>((ref) async {
   final wtPath = ref.watch(wtPathProvider);
   const defaultList = [
@@ -30,13 +48,9 @@ final availableFilesProvider = FutureProvider<List<String>>((ref) async {
     return defaultList;
   }
 
-  final List<String> csvFiles = [];
+  final List<String> csvFiles;
   try {
-    await for (final entity in langDir.list()) {
-      if (entity is File && entity.path.toLowerCase().endsWith('.csv')) {
-        csvFiles.add(p.basename(entity.path));
-      }
-    }
+    csvFiles = await visibleLangCsvFiles(langDir);
   } catch (_) {
     return defaultList;
   }

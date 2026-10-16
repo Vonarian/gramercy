@@ -78,7 +78,9 @@ class AppDatabase extends _$AppDatabase {
       ),
     );
     AppLogger.instance.d(
-      'Saved override [${entity.fileName.value}] ${entity.stringKey.value} -> "${entity.customValue.value}"',
+      'Saved override [${AppLogger.scrub(entity.fileName.value)}] '
+      '${AppLogger.scrub(entity.stringKey.value)} -> '
+      '"${AppLogger.scrub(entity.customValue.value)}"',
       tag: 'DRIFT',
     );
   }
