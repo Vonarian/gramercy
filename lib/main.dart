@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/database/database.dart';
 import 'package:gramercy/core/logging/app_logger.dart';
 import 'package:gramercy/core/logging/log_entry.dart';
+import 'package:gramercy/core/logging/log_path.dart';
 import 'package:gramercy/core/services/preferences_service.dart';
 import 'package:gramercy/core/theme/app_theme.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
@@ -28,9 +29,11 @@ Future<void> main() async {
   final database = AppDatabase();
 
   // 4. Configure Application Logging
+  final logFilePath = resolveLogFilePath();
   AppLogger.instance.configure(
     minLevel: LogLevel.fromString(preferencesService.logLevel),
-    fileOutput: preferencesService.enableFileLogging,
+    fileOutput: logFilePath != null && preferencesService.enableFileLogging,
+    logFilePath: logFilePath,
   );
   AppLogger.instance.i('War Thunder Localization Editor booted');
 

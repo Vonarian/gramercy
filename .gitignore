@@ -50,3 +50,6 @@ app.*.map.json
 
 # Impeccable runtime state & cache
 .impeccable/
+
+# Impeccable skill engine payload: fetched & hash-verified by the launcher at setup, not committed
+.agents/skills/impeccable/scripts/bin/

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gramercy/core/isolates/localization_worker.dart';
+import 'package:gramercy/core/isolates/wt_csv_text.dart';
 
 void main() {
   late Directory tempDir;
@@ -86,5 +87,52 @@ void main() {
         isTrue,
       );
     });
+  });
+
+  group('CSV text helpers (wt_csv_text)', () {
+    test('wtOrigPath / wtTmpPath derive sibling paths', () {
+      expect(wtOrigPath('D:/lang/units.csv'), 'D:/lang/units.csv.orig');
+      expect(wtTmpPath('D:/lang/units.csv'), 'D:/lang/units.csv.tmp');
+    });
+
+    test('formatWtCsvValue quotes separators, quotes and line breaks', () {
+      expect(formatWtCsvValue('plain'), 'plain');
+      expect(formatWtCsvValue('a;b'), '"a;b"');
+      expect(formatWtCsvValue('a"b'), '"a""b"');
+      expect(formatWtCsvValue('l1\nl2'), '"l1\nl2"');
+      expect(formatWtCsvValue('l1\r\nl2'), '"l1\r\nl2"');
+    });
+
+    test('splitWtLine returns raw columns honouring quoted semicolons', () {
+      expect(splitWtLine('k1;"some;value";leftover'), [
+        'k1',
+        '"some;value"',
+        'leftover',
+      ]);
+      expect(splitWtLine('plain;normal'), ['plain', 'normal']);
+      expect(splitWtLine('k;""Tiger II (H)"";x'), [
+        'k',
+        '""Tiger II (H)""',
+        'x',
+      ]);
+      expect(splitWtLine('k;"open;ended'), ['k', '"open;ended']);
+      expect(splitWtLine('single'), ['single']);
+    });
+
+    test(
+      'File.rename replaces an existing target on Windows (probe)',
+      () async {
+        final dst = File('${tempDir.path}/rename_dst.csv');
+        await dst.writeAsString('old-target');
+        final src = File('${tempDir.path}/rename_dst.csv.tmp');
+        await src.writeAsString('new-content');
+
+        final renamed = await src.rename(dst.path);
+
+        expect(renamed.path, dst.path);
+        expect(await dst.readAsString(), 'new-content');
+        expect(await src.exists(), isFalse);
+      },
+    );
   });
 }

@@ -11,7 +11,7 @@
   [![Anti--Cheat](https://img.shields.io/badge/Anti--Cheat-100%25%20BattlEye%20Safe-success)](https://warthunder.com)
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
   [![Tests](https://img.shields.io/badge/Tests-82%20Passed-brightgreen)](test/)
-  [![Release](https://img.shields.io/badge/Release-v1.4.0-blue)](https://github.com/Vonarian/gramercy/releases)
+  [![Release](https://img.shields.io/badge/Release-v1.4.1-blue)](https://github.com/Vonarian/gramercy/releases)
   [![Platforms](https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux%20%7C%20macOS-blue)](https://flutter.dev)
 </div>
 
@@ -131,6 +131,23 @@ When downloading release executables on Windows, you may encounter a blue **Wind
 > **How to launch:**  
 > Click **"More info"** ➔ Click **"Run anyway"**. The binary is built transparently via GitHub Actions from this open-source codebase.
 
+### Verify Before You Run Anyway
+
+"Run anyway" is precisely the reflex malware distributors train into people, so pair it with a checksum. We still don't code-sign the builds (see the certificate pricing above), but **every release publishes the three build archives *and* a `SHA256SUMS.txt` manifest alongside them**, so you can prove the archive you got is the one CI built:
+
+```powershell
+# Windows (cmd or PowerShell)
+certutil -hashfile gramercy-windows-x64.zip SHA256
+```
+
+```bash
+# macOS / Linux
+shasum -a 256 gramercy-macos.zip
+```
+
+> [!TIP]
+> **Where to find `SHA256SUMS.txt`:** open the [Releases page](https://github.com/Vonarian/gramercy/releases), open your release, and expand the **Assets** list under the release notes — `SHA256SUMS.txt` is served next to `gramercy-windows-x64.zip`, `gramercy-linux-x64.tar.gz`, and `gramercy-macos.zip`. Drop it into the same folder as your archive, hash the archive with the one-liner above, and compare against the matching line (digests match case-insensitively; on Linux/macOS `sha256sum -c SHA256SUMS.txt` checks everything in one shot). Hash matches — the **"Run anyway"** click has been earned. Hash doesn't — the archive is not ours; delete it and re-download straight from the release page.
+
 ---
 
 ## 7. Under the Hood: Architecture
@@ -208,7 +225,7 @@ flowchart TD
 
 ### Pre-Built Desktop Binaries
 
-Download the ready-to-run package for your platform from the **[Latest Release](https://github.com/Vonarian/gramercy/releases/latest)**:
+Download the ready-to-run package for your platform from the **[Latest Release](https://github.com/Vonarian/gramercy/releases/latest)**. Each release also publishes a `SHA256SUMS.txt` checksum manifest next to the archives — see the [verification commands](#6-windows-smartscreen-advisory) in section 6 before you launch anything:
 
 | Platform | Package Archive | Quick Start |
 | :--- | :--- | :--- |
@@ -271,6 +288,26 @@ flutter test --coverage
 
 ---
 
-## 11. License
+## 11. Security Acknowledgments
+
+The localization pipeline was reviewed through a friendly, defensive security
+audit by [**@cyberofficial**](https://github.com/cyberofficial) — thank you for
+the responsible disclosure and for the detailed, reproducible report.
+
+Their findings drove this release's hardening work:
+
+- **Strict-basename validation** for imported community presets, closing a
+  path-traversal overwrite vector in the *Reload & Apply* flow.
+- **Symlink refusal** across CSV export, backups, and the available-files
+  listing, so hostile packs cannot write through links.
+- **Quote- and newline-aware CSV parsing/export**, landing writes **atomically**
+  through same-directory temp renames (for both lang CSVs and `config.blk`).
+- **Snapshot id containment** in the vault, plus log-forging scrubbing and
+  supply-chain hygiene for CI (SHA-pinned actions, scoped permissions,
+  release checksums).
+
+---
+
+## 12. License
 
 Distributed under the terms of the **GNU General Public License v3.0**. See [`LICENSE`](LICENSE) for details.

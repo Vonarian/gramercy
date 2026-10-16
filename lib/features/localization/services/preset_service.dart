@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/database/database.dart';
 import '../../../core/logging/app_logger.dart';
+import '../../../core/security/lang_file_guard.dart';
 
 final presetServiceProvider = Provider<PresetService>((ref) {
   return const PresetService();
@@ -47,13 +48,69 @@ class PresetService {
   }
 
   List<LocalizationsOverridesCompanion> deserializePreset(String jsonString) {
+    final decoded = _decodePayload(jsonString);
+    final rawOverrides = _extractOverrides(decoded);
+
+    final companions = <LocalizationsOverridesCompanion>[];
+    for (final item in rawOverrides) {
+      final companion = _toCompanion(item);
+      if (companion != null) companions.add(companion);
+    }
+
+    AppLogger.instance.i(
+      'Deserialized ${companions.length} valid overrides from preset JSON',
+      tag: 'PRESET',
+    );
+    return companions;
+  }
+
+  /// Validates the imported `file` field as a strict lang/ basename.
+  ///
+  /// Security (audit F1-1/F2-1, severe): community presets are untrusted; the
+  /// raw `file` value previously passed validation and was persisted, then
+  /// joined into a filesystem path where traversal/absolute names overwrote
+  /// arbitrary existing files (e.g. `../config.blk`, `C:\tmp\v.csv`).
+  /// Failing loud here also guards the snapshot-vault restore flow (F1-6),
+  /// which parses through this same choke point.
+  LocalizationsOverridesCompanion? _toCompanion(dynamic item) {
+    if (item is! Map) return null;
+    final file = item['file'];
+    final key = item['key'];
+    final value = item['value'];
+
+    if (file is String && !isSafeLangFileName(file)) {
+      throw FormatException(
+        'Unsafe preset target file: "$file" — path traversal and '
+        'absolute paths are not allowed.',
+      );
+    }
+    if (file is! String) return null;
+    if (key is! String || key.isEmpty || value is! String) return null;
+
+    // F2-2: CR/LF in imported values corrupts CSV rows on export; normalize
+    // before anything is persisted. fileName is a no-op only because the
+    // guard above already refuses control characters.
+    return LocalizationsOverridesCompanion.insert(
+      fileName: _normalizeNewlines(file),
+      stringKey: _normalizeNewlines(key),
+      customValue: _normalizeNewlines(value),
+    );
+  }
+
+  String _normalizeNewlines(String raw) =>
+      raw.replaceAll('\r\n', ' ').replaceAll('\n', ' ').replaceAll('\r', ' ');
+
+  dynamic _decodePayload(String jsonString) {
     dynamic decoded;
     try {
       decoded = jsonDecode(jsonString);
     } catch (e) {
       throw const FormatException('File does not contain valid JSON.');
     }
+    return decoded;
+  }
 
+  List<dynamic> _extractOverrides(dynamic decoded) {
     if (decoded is! Map<String, dynamic>) {
       throw const FormatException('Root of preset JSON must be an object.');
     }
@@ -69,33 +126,6 @@ class PresetService {
     if (rawOverrides is! List) {
       throw const FormatException('Missing or invalid "overrides" list.');
     }
-
-    final companions = <LocalizationsOverridesCompanion>[];
-    for (final item in rawOverrides) {
-      if (item is! Map) continue;
-      final file = item['file'];
-      final key = item['key'];
-      final value = item['value'];
-
-      if (file is String &&
-          file.isNotEmpty &&
-          key is String &&
-          key.isNotEmpty &&
-          value is String) {
-        companions.add(
-          LocalizationsOverridesCompanion.insert(
-            fileName: file,
-            stringKey: key,
-            customValue: value,
-          ),
-        );
-      }
-    }
-
-    AppLogger.instance.i(
-      'Deserialized ${companions.length} valid overrides from preset JSON',
-      tag: 'PRESET',
-    );
-    return companions;
+    return rawOverrides;
   }
 }
