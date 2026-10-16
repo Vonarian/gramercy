@@ -171,7 +171,7 @@ Before submitting a PR or marking a task complete, verify every requirement:
 
 ## 7. Agent Skills & Design Tooling (`.agents/`)
 
-* **Single Source of Truth**: All workspace agent skills, runbooks, and configurations must reside exclusively under `.agents/skills/` (e.g., `.agents/skills/impeccable/`). Never create or duplicate skill directories in `.agent/`, `.gemini/`, or root tool folders.
+* **Single Source of Truth**: All workspace agent skills, runbooks, and configurations must reside exclusively under `.agents/skills/` (e.g., `.agents/skills/impeccable/`). Never create or duplicate skill directories in `.agent/`, `.gemini/`, or root tool folders. Launcher-script engine payloads are the one deliberate exception to committing: payloads under a skill's `scripts/bin/` directories are **not** committed to the repository — they are fetched and hash-verified at setup by the skill's own launcher scripts.
 * **Impeccable UI/UX Tooling**:
   * Use the `impeccable` skill (`.agents/skills/impeccable/SKILL.md`) for frontend design critique, visual hierarchy audit, typography, layout polishing, and styling workflows.
   * Execute bundled CLI tools and scripts directly via `.agents/skills/impeccable/scripts/...`.
