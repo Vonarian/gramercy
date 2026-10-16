@@ -10,55 +10,84 @@ class ExportNotifier extends Notifier<ExportState> {
   @override
   ExportState build() => const ExportState();
 
+  void _setState(ExportState exportState) => state = exportState;
+
+  void _fail(String message) =>
+      _setState(ExportState(status: ExportStatus.error, message: message));
+
+  Future<Map<String, String>> _overridesFor(String fileName) async {
+    final db = ref.read(dbProvider);
+    final overridesList = await db.getOverridesForFile(fileName);
+    return {for (var o in overridesList) o.stringKey: o.customValue};
+  }
+
+  Future<void> _patchConfigIfPresent(String wtPath) async {
+    final worker = ref.read(workerServiceProvider);
+    final configBlkPath = p.join(wtPath, 'config.blk');
+    if (!File(configBlkPath).existsSync()) return;
+    await worker.patchConfigBlk(configBlkPath);
+    ref.invalidate(configBlkStatusProvider);
+  }
+
+  /// Runs the CSV export and honors the worker's symlink/non-regular-file
+  /// refusal (audit F1-2) instead of silently reporting success.
+  Future<bool> _deploy(
+    String fileName,
+    String targetPath,
+    Map<String, String> overridesMap,
+  ) async {
+    final worker = ref.read(workerServiceProvider);
+    final exported = await worker.exportPatchedCsv(
+      baseFilePath: targetPath,
+      targetFilePath: targetPath,
+      overrides: overridesMap,
+    );
+    if (!exported) {
+      AppLogger.instance.w(
+        'Export refused (not a regular file): $fileName',
+        tag: 'EXPORT',
+      );
+      _fail('Export refused: source or target is not a regular file.');
+      return false;
+    }
+
+    ref.invalidate(baseStringsProvider(fileName));
+    AppLogger.instance.i(
+      'Deployed $fileName (${overridesMap.length} overrides)',
+      tag: 'EXPORT',
+    );
+    _setState(
+      ExportState(
+        status: ExportStatus.success,
+        message: 'Successfully deployed patches for $fileName to game!',
+      ),
+    );
+    return true;
+  }
+
   Future<bool> exportCurrentFile() async {
-    state = const ExportState(
-      status: ExportStatus.inProgress,
-      message: 'Deploying patches to game...',
+    _setState(
+      const ExportState(
+        status: ExportStatus.inProgress,
+        message: 'Deploying patches to game...',
+      ),
     );
     final wtPath = ref.read(wtPathProvider);
     final fileName = ref.read(selectedFileProvider);
 
     if (wtPath == null || wtPath.isEmpty) {
-      state = const ExportState(
-        status: ExportStatus.error,
-        message: 'War Thunder install path is not set.',
-      );
+      _fail('War Thunder install path is not set.');
       return false;
     }
 
     try {
-      final db = ref.read(dbProvider);
-      final overridesList = await db.getOverridesForFile(fileName);
-      final overridesMap = {
-        for (var o in overridesList) o.stringKey: o.customValue,
-      };
-
-      final worker = ref.read(workerServiceProvider);
-      final targetPath = p.join(wtPath, 'lang', fileName);
-
-      final configBlkPath = p.join(wtPath, 'config.blk');
-      if (File(configBlkPath).existsSync()) {
-        await worker.patchConfigBlk(configBlkPath);
-        ref.invalidate(configBlkStatusProvider);
-      }
-
-      await worker.exportPatchedCsv(
-        baseFilePath: targetPath,
-        targetFilePath: targetPath,
-        overrides: overridesMap,
+      final overridesMap = await _overridesFor(fileName);
+      await _patchConfigIfPresent(wtPath);
+      return await _deploy(
+        fileName,
+        p.join(wtPath, 'lang', fileName),
+        overridesMap,
       );
-
-      ref.invalidate(baseStringsProvider(fileName));
-
-      AppLogger.instance.i(
-        'Deployed $fileName (${overridesMap.length} overrides)',
-        tag: 'EXPORT',
-      );
-      state = ExportState(
-        status: ExportStatus.success,
-        message: 'Successfully deployed patches for $fileName to game!',
-      );
-      return true;
     } catch (e, st) {
       AppLogger.instance.e(
         'Export failed for $fileName',
@@ -66,10 +95,7 @@ class ExportNotifier extends Notifier<ExportState> {
         error: e,
         stack: st,
       );
-      state = ExportState(
-        status: ExportStatus.error,
-        message: 'Export failed: $e',
-      );
+      _fail('Export failed: $e');
       return false;
     }
   }
