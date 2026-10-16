@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.1] - 2026-10-16
+
+### Security
+- **Security Hardening Release (audit by [@cyberofficial](https://github.com/cyberofficial))**: A friendly defensive security audit reviewed the customization pipeline end to end; every confirmed finding was reproduced under test-first (RED→GREEN) discipline and fixed. Thank you for the responsible disclosure and detailed report.
+- **Community Preset Validation**: Imported presets now require strict basename file targets, so a crafted preset can no longer stage writes outside the game's `lang/` folder during *Reload & Apply*. Import layers also normalize line breaks out of stored keys/values.
+- **Symlink Refusal**: CSV export, the automatic language backup, and the available-files listing now refuse symlinks planted by hostile language packs, so reads and writes never travel through them.
+
+### Fixed
+- **Atomic, Quote-Safe Exports**: Exported CSVs quote values containing separators or line breaks and are parsed with a quote-aware splitter, so strings with `;` or quotes survive round-trips intact; writes land through a same-directory temp rename (exports to game files and `config.blk` are now truly atomic), and a Unicode BOM is preserved when the game file carried one.
+- **Fresh Base Synthesis**: Exports synthesize from the live game file rather than a stale first-run backup copy, keeping strings correct after game updates while `.orig` remains as a create-once restore artifact.
+- **Snapshot Vault Containment**: Snapshot identifiers from vault JSON are validated before any vault file is deleted or restored.
+- **Atomic `config.blk` Patching**: Patched game configs are renamed into place instead of rewritten in place; the one-time pre-Gramercy `.bak` snapshot is never clobbered by Gramercy's own writes.
+
+### Changed (CI / Supply Chain)
+- Release workflows pin every action to a verified commit SHA, scope write permissions to the publish job only, and ship **SHA256SUMS.txt** with every release; the committed 14.7 MB engine binary was replaced by a hash-verified fetch-at-setup launcher; an npm lockfile pins dev-marketing tooling resolution.
+
+---
+
 ## [1.4.0] - 2026-09-27
 
 ### Added
