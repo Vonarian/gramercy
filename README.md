@@ -288,6 +288,26 @@ flutter test --coverage
 
 ---
 
-## 11. License
+## 11. Security Acknowledgments
+
+The localization pipeline was reviewed through a friendly, defensive security
+audit by [**@cyberofficial**](https://github.com/cyberofficial) — thank you for
+the responsible disclosure and for the detailed, reproducible report.
+
+Their findings drove this release's hardening work:
+
+- **Strict-basename validation** for imported community presets, closing a
+  path-traversal overwrite vector in the *Reload & Apply* flow.
+- **Symlink refusal** across CSV export, backups, and the available-files
+  listing, so hostile packs cannot write through links.
+- **Quote- and newline-aware CSV parsing/export**, landing writes **atomically**
+  through same-directory temp renames (for both lang CSVs and `config.blk`).
+- **Snapshot id containment** in the vault, plus log-forging scrubbing and
+  supply-chain hygiene for CI (SHA-pinned actions, scoped permissions,
+  release checksums).
+
+---
+
+## 12. License
 
 Distributed under the terms of the **GNU General Public License v3.0**. See [`LICENSE`](LICENSE) for details.
