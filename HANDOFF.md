@@ -108,3 +108,13 @@ All detailed promotional copy and step-by-step guides reside in `docs/marketing/
 * 📄 [`docs/marketing/WAR_THUNDER_LIVE_POST.md`](file:///d:/src/gramercy/docs/marketing/WAR_THUNDER_LIVE_POST.md) — WT Live mod page description
 * 📄 [`docs/marketing/SHORT_FORM_VIDEO_SCRIPTS.md`](file:///d:/src/gramercy/docs/marketing/SHORT_FORM_VIDEO_SCRIPTS.md) — TikTok / Shorts 30s/45s/60s scripts
 * 📄 [`docs/marketing/CREATOR_OUTREACH_KIT.md`](file:///d:/src/gramercy/docs/marketing/CREATOR_OUTREACH_KIT.md) — Creator email & DM outreach kit
+
+---
+
+## 5. Security Audit Credit
+
+The v1.4.x hardening cycle was driven by a friendly, defensive security audit
+kindly provided by [@cyberofficial](https://github.com/cyberofficial)
+(responsible disclosure). All confirmed findings were reproduced locally under
+test-first (RED→GREEN) discipline and fixed on `dev`; see the *Security
+Acknowledgments* section of the README for a summary of what shipped.
