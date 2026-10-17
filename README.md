@@ -231,14 +231,14 @@ Download the ready-to-run package for your platform from the **[Latest Release](
 | :--- | :--- | :--- |
 | **Windows** (10 / 11 x64) | `gramercy-windows-x64.zip` | Extract archive, open folder, and run `gramercy.exe`. *(See [Windows SmartScreen Advisory](#6-windows-smartscreen-advisory))* |
 | **Linux** (x64) | `gramercy-linux-x64.tar.gz` | Extract with `tar -xzf gramercy-linux-x64.tar.gz` and run `./gramercy`. |
-| **macOS** (Universal) | `gramercy-macos.zip` | Extract archive and move `gramercy.app` to your Applications folder. |
+| **macOS** (Apple Silicon) | `gramercy-macos.zip` | Extract archive and move `gramercy.app` to your Applications folder. |
 
 ---
 
 ## 9. Building from Source
 
 ### Prerequisites
-- **Operating Systems**: Windows 10/11 (x64, primary), Linux (x64), or macOS (Apple Silicon & Intel)
+- **Operating Systems**: Windows 10/11 (x64, primary), Linux (x64), or macOS (Apple Silicon)
 - **War Thunder**: Installed via Steam or Gaijin Standalone Launcher
 - **Flutter SDK**: `>= 3.24.0` (with desktop enabled)
 
