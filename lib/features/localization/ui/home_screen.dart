@@ -9,6 +9,7 @@ import 'package:gramercy/features/localization/ui/widgets/search_and_filter_bar.
 import 'package:gramercy/features/localization/ui/widgets/status_bar.dart';
 import 'package:gramercy/features/localization/ui/widgets/table_header.dart';
 import 'package:gramercy/features/localization/ui/widgets/top_app_bar.dart';
+import 'package:gramercy/features/localization/ui/widgets/localization_status_views.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -133,47 +134,9 @@ class _VirtualizedLocalizationListState
           ),
         );
       },
-      loading: () => const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(color: AppTheme.primaryAmber),
-            SizedBox(height: 16),
-            Text(
-              'Parsing localization CSV with worker isolate...',
-              style: TextStyle(color: AppTheme.textSecondary),
-            ),
-          ],
-        ),
-      ),
-      error: (err, _) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.error_outline,
-                size: 48,
-                color: AppTheme.alertRed,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Error loading $fileName: $err',
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Make sure War Thunder path is set and lang/ contains CSV files.',
-                style: TextStyle(color: AppTheme.textSecondary),
-              ),
-            ],
-          ),
-        ),
-      ),
+      loading: () => const LocalizationLoadingView(),
+      error: (err, _) =>
+          LocalizationErrorView(error: 'Error loading $fileName: $err'),
     );
   }
 }

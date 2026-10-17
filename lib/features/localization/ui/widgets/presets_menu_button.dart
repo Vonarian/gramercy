@@ -5,7 +5,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/database/database.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../providers/db_provider.dart';
 import '../../services/preset_service.dart';
@@ -60,8 +59,10 @@ class PresetsMenuButton extends ConsumerWidget {
   }
 
   Future<void> _exportPreset(BuildContext context, WidgetRef ref) async {
-    final db = ref.read(dbProvider);
-    final overrides = await db.getAllOverrides();
+    final presetService = ref.read(presetServiceProvider);
+    final overrides = await presetService.loadAllOverrides(
+      ref.read(dbProvider),
+    );
 
     if (!context.mounted) return;
     if (overrides.isEmpty) {
@@ -71,7 +72,7 @@ class PresetsMenuButton extends ConsumerWidget {
       return;
     }
 
-    final jsonStr = ref.read(presetServiceProvider).serializePreset(overrides);
+    final jsonStr = presetService.serializePreset(overrides);
     final bytes = Uint8List.fromList(utf8.encode(jsonStr));
 
     final savedUri = await FilePicker.saveFile(
@@ -105,11 +106,22 @@ class PresetsMenuButton extends ConsumerWidget {
     try {
       final jsonStr = await _readFileContent(picked);
       if (jsonStr == null || !context.mounted) return;
-
-      final companions = ref
+      final count = await ref
           .read(presetServiceProvider)
-          .deserializePreset(jsonStr);
-      await _importCompanions(context, ref, companions);
+          .importPreset(ref.read(dbProvider), jsonStr);
+
+      if (!context.mounted) return;
+      if (count == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preset contains no valid overrides.')),
+        );
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Successfully imported $count overrides from preset!'),
+        ),
+      );
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -119,30 +131,6 @@ class PresetsMenuButton extends ConsumerWidget {
           ),
         );
       }
-    }
-  }
-
-  Future<void> _importCompanions(
-    BuildContext context,
-    WidgetRef ref,
-    List<LocalizationsOverridesCompanion> companions,
-  ) async {
-    if (companions.isEmpty) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preset contains no valid overrides.')),
-        );
-      }
-      return;
-    }
-
-    final count = await ref.read(dbProvider).batchUpsertOverrides(companions);
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Successfully imported $count overrides from preset!'),
-        ),
-      );
     }
   }
 
