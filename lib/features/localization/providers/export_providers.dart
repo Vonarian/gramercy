@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/database/database.dart';
 import 'package:gramercy/core/logging/app_logger.dart';
+import 'package:gramercy/core/security/lang_file_guard.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
 import 'package:path/path.dart' as p;
 
@@ -104,14 +105,21 @@ class ExportNotifier extends Notifier<ExportState> {
       return false;
     }
 
+    // Defense-in-depth (audit B1): same sandbox guard as the rebuild path.
+    final targetPath = safeLangFilePath(wtPath, fileName);
+    if (targetPath == null) {
+      AppLogger.instance.w(
+        'Refusing export for unsafe lang file name: $fileName',
+        tag: 'EXPORT',
+      );
+      _fail('Refusing export: "fileName" is not a safe lang file name.');
+      return false;
+    }
+
     try {
       final overridesMap = await _overridesFor(fileName);
       await _patchConfigIfPresent(wtPath);
-      return await _deploy(
-        fileName,
-        p.join(wtPath, 'lang', fileName),
-        overridesMap,
-      );
+      return await _deploy(fileName, targetPath, overridesMap);
     } catch (e, st) {
       AppLogger.instance.e(
         'Export failed for $fileName',
