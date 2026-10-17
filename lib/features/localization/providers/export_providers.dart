@@ -133,6 +133,35 @@ class ExportNotifier extends Notifier<ExportState> {
   }
 
   void reset() => state = const ExportState();
+
+  Future<void> saveOverride({
+    required String fileName,
+    required String key,
+    required String customValue,
+  }) async {
+    final db = ref.read(dbProvider);
+    await db.saveOverride(
+      LocalizationsOverridesCompanion.insert(
+        fileName: fileName,
+        stringKey: key,
+        customValue: customValue,
+      ),
+    );
+    if (ref.read(autoExportProvider)) {
+      requestAutoExport();
+    }
+  }
+
+  Future<void> revertOverride({
+    required String fileName,
+    required String key,
+  }) async {
+    final db = ref.read(dbProvider);
+    await db.deleteOverride(fileName, key);
+    if (ref.read(autoExportProvider)) {
+      requestAutoExport();
+    }
+  }
 }
 
 final exportNotifierProvider = NotifierProvider<ExportNotifier, ExportState>(
@@ -140,34 +169,18 @@ final exportNotifierProvider = NotifierProvider<ExportNotifier, ExportState>(
 );
 
 Future<void> saveLocalizationOverride({
-  required WidgetRef ref,
+  required dynamic ref,
   required String fileName,
   required String key,
   required String customValue,
-}) async {
-  final db = ref.read(dbProvider);
-  await db.saveOverride(
-    LocalizationsOverridesCompanion.insert(
-      fileName: fileName,
-      stringKey: key,
-      customValue: customValue,
-    ),
-  );
-
-  if (ref.read(autoExportProvider)) {
-    ref.read(exportNotifierProvider.notifier).requestAutoExport();
-  }
-}
+}) => ref
+    .read(exportNotifierProvider.notifier)
+    .saveOverride(fileName: fileName, key: key, customValue: customValue);
 
 Future<void> revertLocalizationOverride({
-  required WidgetRef ref,
+  required dynamic ref,
   required String fileName,
   required String key,
-}) async {
-  final db = ref.read(dbProvider);
-  await db.deleteOverride(fileName, key);
-
-  if (ref.read(autoExportProvider)) {
-    ref.read(exportNotifierProvider.notifier).requestAutoExport();
-  }
-}
+}) => ref
+    .read(exportNotifierProvider.notifier)
+    .revertOverride(fileName: fileName, key: key);
