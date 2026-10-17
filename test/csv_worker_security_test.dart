@@ -6,7 +6,7 @@ import 'package:gramercy/core/isolates/localization_worker.dart';
 
 /// Security-audit regression tests for the CSV export/parse pipeline.
 ///
-/// Finding IDs reference the audit report in `D:\src\gramercy-report\issue_raw.md`.
+/// Finding IDs reference the original security audit report (internal).
 /// All file IO stays inside a [Directory.systemTemp] sandbox (setUp) that is
 /// deleted recursively in tearDown — repo files are never touched.
 void main() {

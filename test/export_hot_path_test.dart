@@ -33,6 +33,7 @@ class _FixedAutoExport extends AutoExportNotifier {
 class _FakeWorker extends LocalizationWorkerService {
   int loadBaseStringsCalls = 0;
   int patchConfigBlkCalls = 0;
+  int exportPatchedCsvCalls = 0;
 
   @override
   Future<Map<String, String>> loadBaseStrings(String filePath) {
@@ -44,6 +45,20 @@ class _FakeWorker extends LocalizationWorkerService {
   Future<bool> patchConfigBlk(String configBlkPath) {
     patchConfigBlkCalls++;
     return Future.value(true);
+  }
+
+  @override
+  Future<bool> exportPatchedCsv({
+    required String baseFilePath,
+    required String targetFilePath,
+    required Map<String, String> overrides,
+  }) {
+    exportPatchedCsvCalls++;
+    return super.exportPatchedCsv(
+      baseFilePath: baseFilePath,
+      targetFilePath: targetFilePath,
+      overrides: overrides,
+    );
   }
 }
 
@@ -155,6 +170,42 @@ void main() {
           worker.loadBaseStringsCalls,
           1,
           reason: 'deploy must reuse the parsed cache',
+        );
+      },
+    );
+
+    test(
+      'export refuses unsafe lang file names before any worker call',
+      () async {
+        // Defense-in-depth (audit B1): a traversal name in the persisted
+        // preference must fail closed without touching the filesystem.
+        final db = _MockDb();
+        when(() => db.getOverridesForFile(any())).thenAnswer((_) async => []);
+        final worker = _FakeWorker();
+        final container = ProviderContainer(
+          overrides: [
+            wtPathProvider.overrideWith(() => _FixedWtPath(wtPath)),
+            selectedFileProvider.overrideWith(
+              () => _FixedSelectedFile('../config.blk'),
+            ),
+            autoExportProvider.overrideWith(_FixedAutoExport.new),
+            autoExportDebounceProvider.overrideWithValue(
+              const Duration(milliseconds: 50),
+            ),
+            dbProvider.overrideWithValue(db),
+            workerServiceProvider.overrideWithValue(worker),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final notifier = container.read(exportNotifierProvider.notifier);
+        final ok = await notifier.exportCurrentFile();
+
+        expect(ok, isFalse);
+        expect(worker.exportPatchedCsvCalls, 0);
+        expect(
+          container.read(exportNotifierProvider).status,
+          ExportStatus.error,
         );
       },
     );
