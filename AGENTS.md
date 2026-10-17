@@ -23,7 +23,7 @@ Every agent operating within this codebase must strictly observe three core pill
 
 * **Working Branches**: Always branched directly from `dev` using strict naming conventions:
 
-* `feat/<feature-name>`: New UI flows, state machines, or client capabilities (e.g., `feat/routine-state-machine`).
+* `feat/<feature-name>`: New UI flows, state machines, or client capabilities (e.g., `feat/preset-import-flow`).
 
 * `fix/<bug-name>`: Bug repairs and regressions (e.g., `fix/drift-batch-insert-deadlock`).
 
@@ -31,7 +31,7 @@ Every agent operating within this codebase must strictly observe three core pill
 
 * `refactor/<target>`: Structural code improvements without behavioral change (e.g., `refactor/extract-metric-dao`).
 
-* `test/<test-suite>`: Unit, widget, or repository test additions (e.g., `test/routine-dao-cases`).
+* `test/<test-suite>`: Unit, widget, or repository test additions (e.g., `test/rebuild-dao-cases`).
 
 * `docs/<doc-name>`: Documentation updates (e.g., `docs/update-architecture-spec`).
 
@@ -49,7 +49,7 @@ All commit messages must follow the [Conventional Commits](https://www.conventio
 
 
 * **Examples**:
-* `feat(routine): implement morning protocol state progression`
+* `feat(preset): validate community pack imports`
 
 * `fix(sync): resolve drift batch insert deadlock`
 
@@ -130,7 +130,7 @@ All new features, state notifiers, repositories, and bug fixes must follow the *
 ### 4.2 Flutter Testing Standards
 
 * **Tooling**: `flutter_test`, `mocktail` for mocks and spies.
-* **Pattern**: Grouped behavior-driven unit, repository, and widget tests (`group('RoutineRepository', () { ... })`).
+* **Pattern**: Grouped behavior-driven unit, repository, and widget tests (`group('LocalizationRepository', () { ... })`).
 * **Execution Command**:
 ```bash
 flutter test --coverage

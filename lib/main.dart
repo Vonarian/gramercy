@@ -10,12 +10,24 @@ import 'package:gramercy/core/services/preferences_service.dart';
 import 'package:gramercy/core/theme/app_theme.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
 import 'package:gramercy/features/localization/ui/home_screen.dart';
+import 'package:gramercy/ui/fallback/unsupported_platform_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:worker_manager/worker_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Fail gracefully on a handset instead of half-initializing desktop
+  // window/process plugins (mobile review, option A).
+  if (Platform.isIOS || Platform.isAndroid) {
+    runApp(
+      MaterialApp(
+        home: UnsupportedPlatformScreen(platform: Platform.operatingSystem),
+      ),
+    );
+    return;
+  }
 
   // 1. Initialize Isolate Worker Manager
   await workerManager.init();

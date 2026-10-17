@@ -56,3 +56,9 @@ app.*.map.json
 
 # Caveman runtime state & cache
 .caveman/
+
+# AI-workflow artifacts: keep local, never commit (video comps are 11MB+)
+brag-output/
+docs/superpowers/
+HANDOFF.md
+docs/marketing/*.mp4
