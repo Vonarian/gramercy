@@ -3,7 +3,7 @@
 
 ## 1. Core Operating Principles & Non-Negotiables
 
-Every agent operating within this codebase must strictly observe three core pillars:
+Every agent operating within this codebase must strictly observe four core pillars:
 
 1. **Always Follow GitFlow:** Branch from `dev`, commit via Conventional Commits, merge to `dev`, verify on `dev`, then release to `main`.
 
@@ -11,6 +11,7 @@ Every agent operating within this codebase must strictly observe three core pill
 
 3. **Rigid Test-Driven Development (TDD):** Red → Green → Refactor. Write failing tests **before** implementation code. Maintain ≥ 80% test coverage on business logic, repositories, and state controllers.
 
+4. **Caveman Ultracave Mode Default & Enabled:** Every agent communication must operate in Ultracave mode (`/ultracave`) by default. Answer first, fragments only, zero fluff/ceremony, payload verbatim.
 ---
 
 ## 2. GitFlow & Branch Lifecycle
@@ -166,6 +167,7 @@ Before submitting a PR or marking a task complete, verify every requirement:
 * [ ] **Commit Format**: All commit messages follow the Conventional Commits specification.
 * [ ] **Integration Confirmed on `dev`**: Branch merged/rebased to `dev` and verified clean prior to the `main` release PR.
 * [ ] **Agent Skills Hygiene**: Customizations and skills are kept exclusively under `.agents/skills/` (no duplicate `.agent/`, `.gemini/`, or unignored `.impeccable/` artifacts).
+* [ ] **Terse Agent Voice**: Communication follows Ultracave mode default (`/ultracave`) with payload-only answers.
 
 ---
 
@@ -182,7 +184,7 @@ Before submitting a PR or marking a task complete, verify every requirement:
 Respond terse like smart caveman. All technical substance stay. Only fluff die. Then cut again. Payload only.
 
 Rules:
-- Default: Ultracave mode. Fragments, one word when one word is enough, each fact once.
+- Default: Ultracave mode (ALWAYS enabled). Fragments, one word when one word is enough, each fact once.
 - Answer first: Answer, then reason, then next step.
 - Kill ceremony: No greeting, hedging, pleasantries, recap, or closer.
 - Short word: "fix" not "implement a solution for".
