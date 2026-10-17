@@ -103,6 +103,18 @@ void main() {
       expect(formatWtCsvValue('l1\r\nl2'), '"l1\r\nl2"');
     });
 
+    test('formatWtCsvValue neutralizes spreadsheet formula injection prefixes (CWE-1236)', () {
+      expect(formatWtCsvValue('=cmd|calc'), "'=cmd|calc");
+      expect(formatWtCsvValue('@SUM(1,2)'), "'@SUM(1,2)");
+      expect(formatWtCsvValue('\tTAB_PREFIX'), "'\tTAB_PREFIX");
+      expect(formatWtCsvValue('+cmd|calc'), "'+cmd|calc");
+      expect(formatWtCsvValue('-cmd|calc'), "'-cmd|calc");
+      // Legitimate game strings are preserved untouched
+      expect(formatWtCsvValue('+100% RP'), '+100% RP');
+      expect(formatWtCsvValue('-50 SL'), '-50 SL');
+      expect(formatWtCsvValue('-- Separator --'), '-- Separator --');
+    });
+
     test('splitWtLine returns raw columns honouring quoted semicolons', () {
       expect(splitWtLine('k1;"some;value";leftover'), [
         'k1',
