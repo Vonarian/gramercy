@@ -17,6 +17,19 @@ class PresetService {
   static const String currentVersion = '1.0';
   static const String defaultSource = 'Gramercy WT Localization Cockpit';
 
+  Future<List<LocalizationsOverride>> loadAllOverrides(AppDatabase db) =>
+      db.getAllOverrides();
+
+  Future<int> importPreset(AppDatabase db, String jsonString) async {
+    final companions = deserializePreset(jsonString);
+    if (companions.isEmpty) return 0;
+    return db.batchUpsertOverrides(companions);
+  }
+
+  Future<int> importCompanions(
+    AppDatabase db,
+    List<LocalizationsOverridesCompanion> companions,
+  ) => db.batchUpsertOverrides(companions);
   String serializePreset(
     List<LocalizationsOverride> overrides, {
     DateTime? exportedAt,

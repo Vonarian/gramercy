@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 
@@ -35,8 +36,8 @@ class SnapshotService {
     final filePath = p.join(baseDir.path, '$id.json');
     final payload = _buildPayload(id, label, description, now, overrides);
 
-    const encoder = JsonEncoder.withIndent('  ');
-    await File(filePath).writeAsString(encoder.convert(payload));
+    final encoded = await Isolate.run(() => _encodeJsonWorker(payload));
+    await File(filePath).writeAsString(encoded);
 
     AppLogger.instance.i(
       'Created snapshot [$id] "$label" with ${overrides.length} overrides',
@@ -78,7 +79,7 @@ class SnapshotService {
     }
 
     final content = await file.readAsString();
-    final companions = presetService.deserializePreset(content);
+    final companions = await Isolate.run(() => _deserializeWorker(content));
     final count = await db.batchUpsertOverrides(companions);
 
     AppLogger.instance.i(
@@ -180,14 +181,19 @@ class SnapshotService {
   /// non-empty, with no surrounding whitespace, no separators, no drive /
   /// NTFS-stream colon syntax, not a relative-name reserve, and unchanged
   /// by [p.basename].
-  bool _isSafeSnapshotId(String id) {
-    return id.isNotEmpty &&
-        id == id.trim() &&
-        !id.contains('/') &&
-        !id.contains(r'\') &&
-        !id.contains(':') &&
-        id != '.' &&
-        id != '..' &&
-        p.basename(id) == id;
-  }
+  bool _isSafeSnapshotId(String id) =>
+      id.isNotEmpty &&
+      id == id.trim() &&
+      !id.contains('/') &&
+      !id.contains(r'\') &&
+      !id.contains(':') &&
+      id != '.' &&
+      id != '..' &&
+      p.basename(id) == id;
+  static String _encodeJsonWorker(Map<String, dynamic> payload) =>
+      const JsonEncoder.withIndent('  ').convert(payload);
+
+  static List<LocalizationsOverridesCompanion> _deserializeWorker(
+    String content,
+  ) => const PresetService().deserializePreset(content);
 }

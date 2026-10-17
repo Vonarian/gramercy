@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gramercy/core/security/lang_file_guard.dart';
 import 'package:gramercy/features/localization/models/localization_entry.dart';
 import 'package:gramercy/features/localization/providers/config_providers.dart';
 import 'package:gramercy/features/localization/providers/db_provider.dart';
@@ -25,7 +26,13 @@ final baseStringsProvider = FutureProvider.family<Map<String, String>, String>((
   final wtPath = ref.watch(wtPathProvider);
   if (wtPath == null || wtPath.isEmpty) return {};
 
-  final filePath = p.join(wtPath, 'lang', fileName);
+  // Defense-in-depth (audit B1): the file name ultimately originates from a
+  // persisted preference; route it through the same sandbox guard the
+  // rebuild path uses so a compromised pref/traversal name can never join
+  // into an arbitrary filesystem path.
+  final filePath = safeLangFilePath(wtPath, fileName);
+  if (filePath == null) return {};
+
   return ref.watch(workerServiceProvider).loadBaseStrings(filePath);
 });
 

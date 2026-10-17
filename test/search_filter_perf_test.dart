@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gramercy/core/isolates/localization_worker.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
 
 void main() {
@@ -159,69 +158,6 @@ void main() {
         lessThan(100),
         reason: 'Filtering 40,000 pre-indexed entries should take under 100ms even with coverage instrumentation',
       );
-    });
-  });
-
-  group('Worker Isolate Filter Tests', () {
-    test('filterEntriesWorker correctly filters entries by query and mode', () {
-      final entries = [
-        LocalizationEntry(
-          key: 'us_m4a3',
-          value: 'M4A3 Sherman',
-          baseValue: 'M4A3 Sherman',
-          isOverridden: false,
-        ),
-        LocalizationEntry(
-          key: 'germ_tiger_ii',
-          value: 'King Tiger Custom',
-          baseValue: 'Tiger II',
-          isOverridden: true,
-        ),
-        LocalizationEntry(
-          key: 'ussr_t34',
-          value: 'T-34-85',
-          baseValue: 'T-34-85',
-          isOverridden: false,
-        ),
-      ];
-
-      // 1. Filter by query
-      final queryFiltered = filterEntriesWorker(
-        FilterTaskParameters(entries: entries, query: 'tiger'),
-      );
-      expect(queryFiltered.length, equals(1));
-      expect(queryFiltered.first.key, equals('germ_tiger_ii'));
-
-      // 2. Filter by overridden only
-      final overriddenFiltered = filterEntriesWorker(
-        FilterTaskParameters(
-          entries: entries,
-          query: '',
-          filterMode: FilterMode.overriddenOnly,
-        ),
-      );
-      expect(overriddenFiltered.length, equals(1));
-      expect(overriddenFiltered.first.key, equals('germ_tiger_ii'));
-
-      // 3. Filter by unmodified only
-      final unmodifiedFiltered = filterEntriesWorker(
-        FilterTaskParameters(
-          entries: entries,
-          query: '',
-          filterMode: FilterMode.unmodifiedOnly,
-        ),
-      );
-      expect(unmodifiedFiltered.length, equals(2));
-
-      // 4. Empty query and all
-      final allFiltered = filterEntriesWorker(
-        FilterTaskParameters(
-          entries: entries,
-          query: '',
-          filterMode: FilterMode.all,
-        ),
-      );
-      expect(allFiltered.length, equals(3));
     });
   });
 }

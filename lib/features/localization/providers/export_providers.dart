@@ -1,14 +1,26 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/database/database.dart';
 import 'package:gramercy/core/logging/app_logger.dart';
+import 'package:gramercy/core/security/lang_file_guard.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
 import 'package:path/path.dart' as p;
 
+/// Debounce window between an override save and the coalesced auto-deploy.
+final autoExportDebounceProvider = Provider<Duration>(
+  (_) => const Duration(seconds: 2),
+);
+
 class ExportNotifier extends Notifier<ExportState> {
+  Timer? _autoExportTimer;
+
   @override
-  ExportState build() => const ExportState();
+  ExportState build() {
+    ref.onDispose(() => _autoExportTimer?.cancel());
+    return const ExportState();
+  }
 
   void _setState(ExportState exportState) => state = exportState;
 
@@ -27,6 +39,17 @@ class ExportNotifier extends Notifier<ExportState> {
     if (!File(configBlkPath).existsSync()) return;
     await worker.patchConfigBlk(configBlkPath);
     ref.invalidate(configBlkStatusProvider);
+  }
+
+  /// Schedules one coalesced auto-deploy after [autoExportDebounceProvider].
+  /// Rapid successive saves cancel the pending timer, so a burst of edits
+  /// costs a single full export pipeline instead of one per save.
+  void requestAutoExport() {
+    _autoExportTimer?.cancel();
+    _autoExportTimer = Timer(ref.read(autoExportDebounceProvider), () {
+      _autoExportTimer = null;
+      exportCurrentFile();
+    });
   }
 
   /// Runs the CSV export and honors the worker's symlink/non-regular-file
@@ -51,7 +74,9 @@ class ExportNotifier extends Notifier<ExportState> {
       return false;
     }
 
-    ref.invalidate(baseStringsProvider(fileName));
+    // The base-strings cache is intentionally NOT invalidated here: overrides
+    // re-merge from the drift watch stream, so re-parsing the whole CSV per
+    // deploy would only burn the hot path (perf audit, Critical #1).
     AppLogger.instance.i(
       'Deployed $fileName (${overridesMap.length} overrides)',
       tag: 'EXPORT',
@@ -80,14 +105,21 @@ class ExportNotifier extends Notifier<ExportState> {
       return false;
     }
 
+    // Defense-in-depth (audit B1): same sandbox guard as the rebuild path.
+    final targetPath = safeLangFilePath(wtPath, fileName);
+    if (targetPath == null) {
+      AppLogger.instance.w(
+        'Refusing export for unsafe lang file name: $fileName',
+        tag: 'EXPORT',
+      );
+      _fail('Refusing export: "fileName" is not a safe lang file name.');
+      return false;
+    }
+
     try {
       final overridesMap = await _overridesFor(fileName);
       await _patchConfigIfPresent(wtPath);
-      return await _deploy(
-        fileName,
-        p.join(wtPath, 'lang', fileName),
-        overridesMap,
-      );
+      return await _deploy(fileName, targetPath, overridesMap);
     } catch (e, st) {
       AppLogger.instance.e(
         'Export failed for $fileName',
@@ -101,6 +133,35 @@ class ExportNotifier extends Notifier<ExportState> {
   }
 
   void reset() => state = const ExportState();
+
+  Future<void> saveOverride({
+    required String fileName,
+    required String key,
+    required String customValue,
+  }) async {
+    final db = ref.read(dbProvider);
+    await db.saveOverride(
+      LocalizationsOverridesCompanion.insert(
+        fileName: fileName,
+        stringKey: key,
+        customValue: customValue,
+      ),
+    );
+    if (ref.read(autoExportProvider)) {
+      requestAutoExport();
+    }
+  }
+
+  Future<void> revertOverride({
+    required String fileName,
+    required String key,
+  }) async {
+    final db = ref.read(dbProvider);
+    await db.deleteOverride(fileName, key);
+    if (ref.read(autoExportProvider)) {
+      requestAutoExport();
+    }
+  }
 }
 
 final exportNotifierProvider = NotifierProvider<ExportNotifier, ExportState>(
@@ -108,34 +169,18 @@ final exportNotifierProvider = NotifierProvider<ExportNotifier, ExportState>(
 );
 
 Future<void> saveLocalizationOverride({
-  required WidgetRef ref,
+  required dynamic ref,
   required String fileName,
   required String key,
   required String customValue,
-}) async {
-  final db = ref.read(dbProvider);
-  await db.saveOverride(
-    LocalizationsOverridesCompanion.insert(
-      fileName: fileName,
-      stringKey: key,
-      customValue: customValue,
-    ),
-  );
-
-  if (ref.read(autoExportProvider)) {
-    await ref.read(exportNotifierProvider.notifier).exportCurrentFile();
-  }
-}
+}) => ref
+    .read(exportNotifierProvider.notifier)
+    .saveOverride(fileName: fileName, key: key, customValue: customValue);
 
 Future<void> revertLocalizationOverride({
-  required WidgetRef ref,
+  required dynamic ref,
   required String fileName,
   required String key,
-}) async {
-  final db = ref.read(dbProvider);
-  await db.deleteOverride(fileName, key);
-
-  if (ref.read(autoExportProvider)) {
-    await ref.read(exportNotifierProvider.notifier).exportCurrentFile();
-  }
-}
+}) => ref
+    .read(exportNotifierProvider.notifier)
+    .revertOverride(fileName: fileName, key: key);

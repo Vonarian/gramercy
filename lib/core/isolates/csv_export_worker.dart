@@ -44,8 +44,7 @@ Future<bool> exportPatchedCsvWorker(ExportTaskParameters params) async {
   }
   await _ensureOrigBackup(baseFile, backupFile);
 
-  final content = await _synthesizeContent(baseFile, params.overrides);
-  await _writeAtomic(tmpFile, targetFile, content);
+  await _streamAtomicExport(baseFile, tmpFile, targetFile, params.overrides);
   return true;
 }
 
@@ -70,27 +69,71 @@ Future<void> _ensureOrigBackup(File baseFile, File backupFile) async {
   }
 }
 
-/// Builds the export body: fresh base rows patched with overrides, or the
-/// overrides-only header branch when no base file exists.
-Future<String> _synthesizeContent(
+Future<void> _streamAtomicExport(
   File baseFile,
+  File tmpFile,
+  File targetFile,
   Map<String, String> overrides,
 ) async {
-  if (!await baseFile.exists()) {
-    return _overridesOnlyContent(overrides);
+  final sink = tmpFile.openWrite(mode: FileMode.write);
+  try {
+    if (!await baseFile.exists()) {
+      sink.write(_overridesOnlyContent(overrides));
+    } else {
+      await _streamPatchedContent(baseFile, sink, overrides);
+    }
+    await sink.flush();
+    await sink.close();
+    await tmpFile.rename(targetFile.path);
+  } catch (e) {
+    try {
+      await sink.close();
+    } catch (_) {}
+    try {
+      if (await tmpFile.exists()) await tmpFile.delete();
+    } catch (_) {}
+    rethrow;
   }
+}
 
+Future<void> _streamPatchedContent(
+  File baseFile,
+  IOSink sink,
+  Map<String, String> overrides,
+) async {
   final rawBytes = await baseFile.readAsBytes();
-  // Strict decode stays fail-closed on export (F2-6 applies to display only).
-  // Dart's utf8 decoder already consumes one leading BOM, so detect it from
-  // the raw bytes, not from the decoded string (F2-7).
-  final hadBom = _hasUtf8Bom(rawBytes);
+  if (_hasUtf8Bom(rawBytes)) {
+    sink.write(wtCsvBom);
+  }
   final content = utf8.decode(rawBytes);
-  final rows = _patchBaseRows(
-    content.replaceAll('\r\n', '\n').split('\n'),
-    overrides,
-  );
-  return '${hadBom ? wtCsvBom : ''}${rows.join('\r\n')}';
+  final lines = content.replaceAll('\r\n', '\n').split('\n');
+  var isFirst = true;
+  for (var i = 0; i < lines.length; i++) {
+    final line = lines[i];
+    if (line.trim().isEmpty) continue;
+    final patched = _patchSingleLine(line, i, overrides);
+    if (!isFirst) {
+      sink.write('\r\n');
+    }
+    sink.write(patched);
+    isFirst = false;
+  }
+}
+
+String _patchSingleLine(String line, int index, Map<String, String> overrides) {
+  if (index == 0) return line;
+  final cols = splitWtLine(line);
+  if (cols.isEmpty) return line;
+  final key = cleanWtString(cols[0]);
+  if (overrides.containsKey(key)) {
+    final formatted = formatWtCsvValue(overrides[key]!);
+    if (cols.length > 1) {
+      cols[1] = formatted;
+    } else {
+      cols.add(formatted);
+    }
+  }
+  return cols.join(';');
 }
 
 /// F2-7: raw-byte BOM detection (EF BB BF).
@@ -107,46 +150,4 @@ String _overridesOnlyContent(Map<String, String> overrides) {
     rows.add('${entry.key};${formatWtCsvValue(entry.value)}');
   }
   return rows.join('\r\n');
-}
-
-/// Patches base rows with overrides; raw columns re-join unchanged unless a
-/// row key matches an override (F2-3), whose value is quoted on emission.
-List<String> _patchBaseRows(List<String> lines, Map<String, String> overrides) {
-  final rows = <String>[];
-  for (var i = 0; i < lines.length; i++) {
-    final line = lines[i];
-    if (line.trim().isEmpty) continue;
-
-    final cols = splitWtLine(line);
-    if (i > 0 && cols.isNotEmpty) {
-      final key = cleanWtString(cols[0]);
-      if (overrides.containsKey(key)) {
-        final formatted = formatWtCsvValue(overrides[key]!);
-        if (cols.length > 1) {
-          cols[1] = formatted;
-        } else {
-          cols.add(formatted);
-        }
-      }
-    }
-    rows.add(cols.join(';'));
-  }
-  return rows;
-}
-
-/// F1-3: writes the UTF-8 payload to the `.tmp` sibling, flushes, then
-/// renames over the target. `File.rename` replaces an existing target file
-/// on Windows (verified) and POSIX, so a partial write never corrupts the
-/// real CSV. Byte-level emission keeps any re-emitted BOM intact (F2-7).
-Future<void> _writeAtomic(File tmpFile, File targetFile, String content) async {
-  try {
-    await tmpFile.writeAsBytes(utf8.encode(content), flush: true);
-    await tmpFile.rename(targetFile.path);
-  } finally {
-    try {
-      if (await tmpFile.exists()) {
-        await tmpFile.delete();
-      }
-    } catch (_) {}
-  }
 }

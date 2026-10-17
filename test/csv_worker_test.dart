@@ -103,6 +103,18 @@ void main() {
       expect(formatWtCsvValue('l1\r\nl2'), '"l1\r\nl2"');
     });
 
+    test('formatWtCsvValue neutralizes spreadsheet formula injection prefixes (CWE-1236)', () {
+      expect(formatWtCsvValue('=cmd|calc'), "'=cmd|calc");
+      expect(formatWtCsvValue('@SUM(1,2)'), "'@SUM(1,2)");
+      expect(formatWtCsvValue('\tTAB_PREFIX'), "'\tTAB_PREFIX");
+      expect(formatWtCsvValue('+cmd|calc'), "'+cmd|calc");
+      expect(formatWtCsvValue('-cmd|calc'), "'-cmd|calc");
+      // Legitimate game strings are preserved untouched
+      expect(formatWtCsvValue('+100% RP'), '+100% RP');
+      expect(formatWtCsvValue('-50 SL'), '-50 SL');
+      expect(formatWtCsvValue('-- Separator --'), '-- Separator --');
+    });
+
     test('splitWtLine returns raw columns honouring quoted semicolons', () {
       expect(splitWtLine('k1;"some;value";leftover'), [
         'k1',
@@ -118,6 +130,27 @@ void main() {
       expect(splitWtLine('k;"open;ended'), ['k', '"open;ended']);
       expect(splitWtLine('single'), ['single']);
     });
+
+    test(
+      'splitWtLine unquoted lines match dart split exactly (fast-path net)',
+      () {
+        // Pin the fast path contract: any line without a DOUBLE QUOTE
+        // character must split identically to String.split(';').
+        const samples = [
+          'us_m4a3;M4A3 (76) W;M4A3 (76) W',
+          'trailing;semicolons;;',
+          '',
+          ';;;',
+          'ünïcödé;këy;vàlué',
+          'semicolon;in;the;end;',
+          ';leading',
+          'just one column without separators',
+        ];
+        for (final line in samples) {
+          expect(splitWtLine(line), equals(line.split(';')), reason: line);
+        }
+      },
+    );
 
     test(
       'File.rename replaces an existing target on Windows (probe)',
