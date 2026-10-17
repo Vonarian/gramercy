@@ -120,6 +120,27 @@ void main() {
     });
 
     test(
+      'splitWtLine unquoted lines match dart split exactly (fast-path net)',
+      () {
+        // Pin the fast path contract: any line without a DOUBLE QUOTE
+        // character must split identically to String.split(';').
+        const samples = [
+          'us_m4a3;M4A3 (76) W;M4A3 (76) W',
+          'trailing;semicolons;;',
+          '',
+          ';;;',
+          'ünïcödé;këy;vàlué',
+          'semicolon;in;the;end;',
+          ';leading',
+          'just one column without separators',
+        ];
+        for (final line in samples) {
+          expect(splitWtLine(line), equals(line.split(';')), reason: line);
+        }
+      },
+    );
+
+    test(
       'File.rename replaces an existing target on Windows (probe)',
       () async {
         final dst = File('${tempDir.path}/rename_dst.csv');

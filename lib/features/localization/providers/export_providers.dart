@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,9 +7,19 @@ import 'package:gramercy/core/logging/app_logger.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
 import 'package:path/path.dart' as p;
 
+/// Debounce window between an override save and the coalesced auto-deploy.
+final autoExportDebounceProvider = Provider<Duration>(
+  (_) => const Duration(seconds: 2),
+);
+
 class ExportNotifier extends Notifier<ExportState> {
+  Timer? _autoExportTimer;
+
   @override
-  ExportState build() => const ExportState();
+  ExportState build() {
+    ref.onDispose(() => _autoExportTimer?.cancel());
+    return const ExportState();
+  }
 
   void _setState(ExportState exportState) => state = exportState;
 
@@ -27,6 +38,17 @@ class ExportNotifier extends Notifier<ExportState> {
     if (!File(configBlkPath).existsSync()) return;
     await worker.patchConfigBlk(configBlkPath);
     ref.invalidate(configBlkStatusProvider);
+  }
+
+  /// Schedules one coalesced auto-deploy after [autoExportDebounceProvider].
+  /// Rapid successive saves cancel the pending timer, so a burst of edits
+  /// costs a single full export pipeline instead of one per save.
+  void requestAutoExport() {
+    _autoExportTimer?.cancel();
+    _autoExportTimer = Timer(ref.read(autoExportDebounceProvider), () {
+      _autoExportTimer = null;
+      exportCurrentFile();
+    });
   }
 
   /// Runs the CSV export and honors the worker's symlink/non-regular-file
@@ -51,7 +73,9 @@ class ExportNotifier extends Notifier<ExportState> {
       return false;
     }
 
-    ref.invalidate(baseStringsProvider(fileName));
+    // The base-strings cache is intentionally NOT invalidated here: overrides
+    // re-merge from the drift watch stream, so re-parsing the whole CSV per
+    // deploy would only burn the hot path (perf audit, Critical #1).
     AppLogger.instance.i(
       'Deployed $fileName (${overridesMap.length} overrides)',
       tag: 'EXPORT',
@@ -123,7 +147,7 @@ Future<void> saveLocalizationOverride({
   );
 
   if (ref.read(autoExportProvider)) {
-    await ref.read(exportNotifierProvider.notifier).exportCurrentFile();
+    ref.read(exportNotifierProvider.notifier).requestAutoExport();
   }
 }
 
@@ -136,6 +160,6 @@ Future<void> revertLocalizationOverride({
   await db.deleteOverride(fileName, key);
 
   if (ref.read(autoExportProvider)) {
-    await ref.read(exportNotifierProvider.notifier).exportCurrentFile();
+    ref.read(exportNotifierProvider.notifier).requestAutoExport();
   }
 }
