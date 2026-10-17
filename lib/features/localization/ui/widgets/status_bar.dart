@@ -11,10 +11,9 @@ class EditorStatusBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fileName = ref.watch(selectedFileProvider);
-    final totalDbOverrides = ref.watch(dbProvider).watchTotalOverridesCount();
-    final fileOverrides = ref
-        .watch(dbProvider)
-        .watchOverridesCountForFile(fileName);
+    final totalDbOverrides = ref.watch(totalOverridesCountProvider).value ?? 0;
+    final fileOverrides =
+        ref.watch(fileOverridesCountProvider(fileName)).value ?? 0;
 
     return Container(
       height: 28,
@@ -26,32 +25,17 @@ class EditorStatusBar extends ConsumerWidget {
           children: [
             const Icon(Icons.storage, size: 13, color: AppTheme.textMuted),
             const SizedBox(width: 6),
-            StreamBuilder<int>(
-              stream: fileOverrides,
-              builder: (context, snapshot) {
-                final count = snapshot.data ?? 0;
-                return Text(
-                  'Delta Vault: $count override(s) in $fileName',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppTheme.textSecondary,
-                  ),
-                );
-              },
+            Text(
+              'Delta Vault: $fileOverrides override(s) in $fileName',
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppTheme.textSecondary,
+              ),
             ),
             const SizedBox(width: 16),
-            StreamBuilder<int>(
-              stream: totalDbOverrides,
-              builder: (context, snapshot) {
-                final total = snapshot.data ?? 0;
-                return Text(
-                  '($total total across all files)',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppTheme.textMuted,
-                  ),
-                );
-              },
+            Text(
+              '($totalDbOverrides total across all files)',
+              style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
             ),
             const SizedBox(width: 24),
             const Text(

@@ -29,6 +29,9 @@ String formatWtCsvValue(String value) => _wtValueQuotedTrigger.hasMatch(value)
 /// semantics stay identical downstream. A field left open at end of line is
 /// treated as closed there (lenient).
 List<String> splitWtLine(String line) {
+  // Fast path: the overwhelming majority of game rows contain no quotes, so
+  // native split is ~10x cheaper than the per-character state machine below.
+  if (!line.contains('"')) return line.split(';');
   final columns = <String>[];
   final current = StringBuffer();
   var inQuotes = false;
