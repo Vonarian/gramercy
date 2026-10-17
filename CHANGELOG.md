@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.0] - 2026-10-17
+
+### Added
+- **Steam Library Auto-Detection**: Integrated `SteamLibraryScanner` to parse `libraryfolders.vdf` across Windows (`C:\Program Files (x86)\Steam`), Linux (`~/.steam`, `~/.local/share/Steam`, Flatpak), and macOS (`~/Library/Application Support/Steam`), automatically locating War Thunder installations (AppID `236390`) without manual folder selection.
+- **Apple Silicon macOS Packaging**: Enhanced macOS bundle configuration with proper `AppIcon` assets and updated CI release pipelines to produce distribution-ready DMG/ZIP artifacts.
+- **Desktop Guard Screen**: Fallback screen for unsupported mobile and non-desktop runtime targets (`unsupported_platform_screen.dart`).
+
+### Performance & Architecture
+- **Streaming CSV Export**: Refactored `csv_export_worker.dart` to stream serialized CSV rows directly via `IOSink`, cutting memory pressure and eliminating heap allocation spikes during large file exports.
+- **Snapshot Background Serialization**: Moved `SnapshotService` JSON encoding/decoding out of the main thread and into background isolates via `Isolate.run`.
+- **Database-Streamed Override Counts**: Replaced per-build counts aggregation with reactive Drift SQLite stream providers (`fileOverridesCountProvider`, `totalOverridesCountProvider`).
+- **Coalesced Auto-Deploy & Delta Batching**: Auto-export on save now debounces and coalesces rapid edits into a single atomic write pipeline.
+
+### Security & Hardening
+- **CSV Formula Injection Defense (CWE-1236)**: Sanitized spreadsheet formula execution triggers (`=`, `@`, `\t`, `+`, `-`) in `wt_csv_text.dart` to prevent formula execution if exported CSV files are opened in Microsoft Excel or LibreOffice Calc.
+- **Process Probe Precision**: Hardened `GameProcessService` with exact image name filters (`tasklist /FI "IMAGENAME eq aces.exe"` on Windows, `pgrep -x` on POSIX) preventing false-positive game running detection.
+- **macOS Sandbox Entitlements**: Removed restrictive container sandboxing in macOS entitlements so game directories outside app sandboxes and external process probes function reliably.
+
+### Refactoring & Code Quality
+- **Lines of Code (LoC) Governance Sweep**: Decomposed monolithic screen widgets and build methods (`onboarding_setup_view.dart`, `home_screen.dart`, `table_header.dart`, `status_bar.dart`, `config_status_pill.dart`) to comply with strict modularity limits (≤ 50 LoC per build method, ≤ 40 LoC per function).
+- **Theme Modularization**: Extracted `AppTheme` into granular typed helper methods.
+- **Architecture Layering**: Abstracted raw database queries in `presets_menu_button.dart` behind `PresetService`, and eliminated `WidgetRef` leaks in export action handlers.
+- **CI Reliability & Coverage**: Fixed colon-delimited LCOV parser in CI workflow and pinned all runner environments to Ubuntu 24.04 and Node 24 actions.
+
+---
+
 ## [1.4.1] - 2026-10-16
 
 ### Security
