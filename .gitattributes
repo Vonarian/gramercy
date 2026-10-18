@@ -1,0 +1,3 @@
+# Agent-skill tooling (scripts/tests) is vendored, not product code.
+# Keep it out of GitHub language statistics so the repo classifies as Dart.
+.agents/** linguist-vendored
