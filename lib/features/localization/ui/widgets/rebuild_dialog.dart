@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/theme/app_theme.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
+import 'package:gramercy/features/localization/providers/rebuild_controller.dart';
 import 'package:gramercy/features/localization/services/rebuild_service.dart';
 import 'package:gramercy/features/localization/ui/widgets/purge_confirm_dialog.dart';
 import 'package:gramercy/features/localization/ui/widgets/rebuild_dialog_cards.dart';
@@ -102,8 +103,8 @@ class _RebuildDialogState extends ConsumerState<RebuildDialog> {
       _isReloading = true;
       _rebuildMessage = null;
     });
-    final service = ref.read(rebuildServiceProvider);
-    final res = await service.reloadAndSynthesize(ref: ref, wtPath: wtPath);
+    final flow = ref.read(rebuildFlowProvider);
+    final res = await flow.reloadAndSynthesize(wtPath: wtPath);
     if (!mounted) return;
 
     setState(() {
