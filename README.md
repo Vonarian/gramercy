@@ -8,20 +8,20 @@
   [![Flutter](https://img.shields.io/badge/Flutter-3.24+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
   [![Riverpod](https://img.shields.io/badge/State-Riverpod%203-0553B1)](https://riverpod.dev)
   [![Drift](https://img.shields.io/badge/Storage-Drift%20SQLite-003B57)](https://drift.simonbinder.eu)
-  [![Anti--Cheat](https://img.shields.io/badge/Anti--Cheat-100%25%20BattlEye%20Safe-success)](https://warthunder.com)
+  [![Anti--Cheat](https://img.shields.io/badge/Anti--Cheat-BattlEye%20Compliant-success)](https://warthunder.com)
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-  [![Tests](https://img.shields.io/badge/Tests-82%20Passed-brightgreen)](test/)
-  [![Release](https://img.shields.io/badge/Release-v1.4.1-blue)](https://github.com/Vonarian/gramercy/releases)
+  [![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen)](.github/workflows/ci.yml)
+  [![Release](https://img.shields.io/badge/Release-v1.5.0-blue)](https://github.com/Vonarian/gramercy/releases)
   [![Platforms](https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux%20%7C%20macOS-blue)](https://flutter.dev)
 </div>
 
 ---
 
-## 1. Overview: Dominate Your Localization
+## 1. What Gramercy Does
 
-**Gramercy** is the high-performance desktop cockpit engineered for War Thunder pilots, tankers, modders, and squadrons on **Windows (primary), Linux, and macOS**. 
+**Gramercy** is a desktop editor for War Thunder localizations on **Windows (primary), Linux, and macOS**. It keeps your custom names outside the game folder, saves your safest backup paths (previously on the shelf). 
 
-Rename any tank, jet, helicopter, or ship. Personalize kill feed messages, install anime and meme packs, or calibrate tactical HUD callouts in seconds. All with **0 in-game FPS drop**, **0 game crashes**, and **100% BattlEye Anti-Cheat (BEAC) safety**.
+Rename any tank, jet, helicopter, or ship. Personalize kill feed messages, install anime and meme packs, or calibrate tactical HUD callouts. Edits are plain text file changes made through Gaijin's official `testLocalization` hook, so nothing touches game memory and there is no known in-game FPS or crash penalty.
 
 <div align="center">
   <img src="docs/screenshots/cockpit_populated.png" alt="Gramercy Virtualized Cockpit" width="900" />
@@ -31,14 +31,14 @@ Rename any tank, jet, helicopter, or ship. Personalize kill feed messages, insta
 
 | The Old Raw CSV Way | The Gramercy Way |
 | :--- | :--- |
-| **Manual File Hacking**: Digging through `<War Thunder>/lang/` with Notepad or Excel. | **Instant Cockpit**: Search 50,000+ strings with real-time token filtering and 120Hz smooth scrolling. |
-| **Crash Prone**: One misplaced semicolon or unescaped quote breaks the game on launch. | **Surgical Patching**: Validated CSV parser and atomic export with automatic `.orig` safety backups. |
-| **Updates Wipe Everything**: When Gaijin drops a patch, all your custom names disappear or cause crashes. | **Armor-Plated Edit Locker**: Customizations live outside the game directory. Stock files are never permanently overwritten. |
-| **No Safety Net**: Make a mistake or lose your edits, and you must reinstall or verify files via Steam. | **Automated Snapshot Safety Net**: Pre-update auto-snapshots and 1-click version rollback. |
+| **Manual File Hacking**: Digging through `<War Thunder>/lang/` with Notepad or Excel. | **Fast Search**: Search 50,000+ strings with real-time token filtering and smooth scrolling. |
+| **Crash Prone**: One misplaced semicolon or unescaped quote breaks the game on launch. | **Validated Export**: Quote-aware CSV parser, atomic write, and automatic `.orig` safety backups. |
+| **Updates Wipe Everything**: When Gaijin drops a patch, all your custom names disappear or cause crashes. | **Edits Stay Separate**: Customizations live outside the game directory. Stock files are never permanently overwritten. |
+| **No Safety Net**: Make a mistake or lose your edits, and you must reinstall or verify files via Steam. | **Snapshots**: Pre-update auto-snapshots and 1-click version rollback. |
 
 ---
 
-## 2. 100% BattlEye Anti-Cheat (BEAC) Safe
+## 2. BattlEye / Anti-Cheat Safety
 
 > [!NOTE]
 > **Can I get banned for using custom localizations?**  
@@ -53,22 +53,22 @@ Rename any tank, jet, helicopter, or ship. Personalize kill feed messages, insta
 
 ## 3. Key Player Features
 
-### 🛡️ Armor-Plated Edit Locker
+### Edit Locker (SQLite vault outside the game folder)
 Your customizations live in an isolated SQLite vault stored in your PC's user profile, completely outside the War Thunder directory. Original stock game files are never permanently overwritten, stock text is never polluted, and game uninstalls or Steam updates cannot delete your progress.
 
-### ⚡ Instant 50,000+ String Cockpit
-Search through 50,000+ vehicles, munitions, radio commands, and kill messages with instant response and zero lag. Powered by fixed-extent virtualization and multi-threaded background workers (`worker_manager` isolates), your PC never drops a frame even while filtering massive dictionaries.
+### Instant 50,000+ String Search
+Search through 50,000+ vehicles, munitions, radio commands, and kill messages. Parsing and export run on `worker_manager` isolates off the UI thread, so scrolling and search stay smooth while dictionaries load.
 
-### 🎯 Surgical Patching
-Only your custom words are injected into the game; everything else stays pure vanilla War Thunder. Every export automatically generates a timestamped `.orig` backup before writing modified CSVs, giving you a fail-safe fallback at all times.
+### Minimal Edits, Always Backed Up
+Only your custom words are written into the game files; everything else stays vanilla War Thunder. Every export automatically generates a timestamped `.orig` backup before writing modified CSVs, giving you a fail-safe fallback at all times.
 
-### 🚀 1-Click Game Enabler
+### 1-Click Game Enabler
 Forget digging through game folders with text editors. Gramercy detects your War Thunder installation and toggles War Thunder's official custom localization hook (`testLocalization:b=yes`) in `config.blk` with one click.
 
-### 📦 Community Presets (Squadron & WT Live Sharing)
+### Community Presets (Squadron & WT Live Sharing)
 Share your custom setups with squadron mates or the WT Live community with 1-click export and import of `.json` preset packs. Swap between realistic military designations, meme kill feeds, anime voice packs, or competitive tournament callouts in seconds.
 
-### 🔄 Automated Snapshot Safety Net
+### Snapshot Safety Net
 Before any cache purge or major rebuild, Gramercy automatically captures a timestamped snapshot of your edits into an external vault. If anything ever gets out of sync, open the **Snapshot History** dialog to inspect or roll back to any previous state with a single click.
 
 ---
@@ -90,7 +90,7 @@ With **Gramercy**, your customizations survive every single update in 3 simple s
    - The game detects `testLocalization:b=yes` and automatically dumps fresh, vanilla CSVs with the new update's strings.
    - Gramercy live-detects when the game finishes dumping.
 4. **Click "Reload & Apply"**:
-   - Gramercy reloads the fresh game strings and instantly stamps all your preserved customizations from your Edit Locker onto the update!
+   - Gramercy reloads the fresh game strings and reapplies all your saved customizations to the new files.
 
 > [!TIP]
 > **Need to revert or check an earlier setup?**  
@@ -216,7 +216,7 @@ flowchart TD
 
 ### Architectural Highlights
 - **Immutable Delta Synthesis**: Stock strings from `lang/*.csv` and user customizations from Drift SQLite never mix in permanent storage. The runtime synthesizes `BaseMap + OverrideMap` immutably on the fly.
-- **Worker Isolates**: CPU-intensive CSV parsing, tokenized search filtering, and disk exports are dispatched to background isolates via `worker_manager`, keeping UI frame times under 8.3ms (120Hz).
+- **Worker Isolates**: CPU-intensive CSV parsing, tokenized search filtering, and disk exports are dispatched to background isolates via `worker_manager`, so filtering runs while the UI stays responsive.
 - **Safe Atomic Exports**: Exports write to temporary swap buffers and copy cleanly to destination CSVs after generating `.orig` backups, ensuring partial writes or power cuts cannot corrupt game files.
 
 ---
@@ -231,14 +231,16 @@ Download the ready-to-run package for your platform from the **[Latest Release](
 | :--- | :--- | :--- |
 | **Windows** (10 / 11 x64) | `gramercy-windows-x64.zip` | Extract archive, open folder, and run `gramercy.exe`. *(See [Windows SmartScreen Advisory](#6-windows-smartscreen-advisory))* |
 | **Linux** (x64) | `gramercy-linux-x64.tar.gz` | Extract with `tar -xzf gramercy-linux-x64.tar.gz` and run `./gramercy`. |
-| **macOS** (Universal) | `gramercy-macos.zip` | Extract archive and move `gramercy.app` to your Applications folder. |
+| **macOS** (Apple Silicon) | `gramercy-macos.zip` | Extract archive and move `gramercy.app` to your Applications folder. |
+
+> **Mobile note:** Gramercy is a desktop application and mobile builds are intentionally not shipped — the game's files live on your PC and phone OSes sandbox access to them. Rule of thumb: your edits and preset packs are just JSON; store a preset pack in any cloud-synced folder and re-import it on the desktop app.
 
 ---
 
 ## 9. Building from Source
 
 ### Prerequisites
-- **Operating Systems**: Windows 10/11 (x64, primary), Linux (x64), or macOS (Apple Silicon & Intel)
+- **Operating Systems**: Windows 10/11 (x64, primary), Linux (x64), or macOS (Apple Silicon)
 - **War Thunder**: Installed via Steam or Gaijin Standalone Launcher
 - **Flutter SDK**: `>= 3.24.0` (with desktop enabled)
 
@@ -270,8 +272,8 @@ Download the ready-to-run package for your platform from the **[Latest Release](
 ## 10. Quality Assurance & AGENTS.md Standards
 
 Gramercy is maintained under strict engineering constraints defined in [`AGENTS.md`](AGENTS.md):
-- **Test-Driven Development (TDD)**: 100% test pass rate with $\ge 80\%$ line coverage across domain logic, DAOs, and state providers.
-- **Strict LoC Ceilings**: Every non-test Dart source file $\le 200$ lines, methods $\le 40$ lines, widget `build()` methods $\le 50$ lines, and test files $\le 400$ lines.
+- **Test-Driven Development (TDD)**: all tests green, with line coverage enforced in CI and rising toward the ≥ 80% target across domain logic, DAOs, and state providers.
+- **Strict LoC Ceilings**: Every non-test Dart source file ≤ 200 lines, methods ≤ 40 lines, widget `build()` methods ≤ 50 lines, and test files ≤ 400 lines.
 - **Zero Static Analysis Warnings**: Verified with `flutter analyze`.
 - **Mandatory Formatting**: Verified with `dart format --output=none --set-exit-if-changed .`.
 

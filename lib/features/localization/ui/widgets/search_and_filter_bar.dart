@@ -35,7 +35,10 @@ class _SearchAndFilterBarState extends ConsumerState<SearchAndFilterBar> {
     final allEntries = ref.watch(synthesizedStringsProvider(fileName));
     final filteredEntries = ref.watch(filteredStringsProvider(fileName));
     final filterMode = ref.watch(filterModeProvider);
-    final overriddenCount = allEntries.where((e) => e.isOverridden).length;
+    // DB-driven count (drift stream), NOT an O(n) scan of the whole
+    // synthesized table on every keystroke rebuild.
+    final overriddenCount =
+        ref.watch(fileOverridesCountProvider(fileName)).value ?? 0;
 
     return Container(
       height: 48,

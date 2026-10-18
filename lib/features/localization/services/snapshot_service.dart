@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 
@@ -35,8 +36,8 @@ class SnapshotService {
     final filePath = p.join(baseDir.path, '$id.json');
     final payload = _buildPayload(id, label, description, now, overrides);
 
-    const encoder = JsonEncoder.withIndent('  ');
-    await File(filePath).writeAsString(encoder.convert(payload));
+    final encoded = await Isolate.run(() => _encodeJsonWorker(payload));
+    await File(filePath).writeAsString(encoded);
 
     AppLogger.instance.i(
       'Created snapshot [$id] "$label" with ${overrides.length} overrides',
@@ -78,7 +79,7 @@ class SnapshotService {
     }
 
     final content = await file.readAsString();
-    final companions = presetService.deserializePreset(content);
+    final companions = await Isolate.run(() => _deserializeWorker(content));
     final count = await db.batchUpsertOverrides(companions);
 
     AppLogger.instance.i(
@@ -134,7 +135,9 @@ class SnapshotService {
   Future<SnapshotMetadata?> _readSnapshotMetadata(File file) async {
     try {
       final content = await file.readAsString();
-      final decoded = jsonDecode(content);
+      final decoded = content.length <= _inlineDecodeLimit
+          ? jsonDecode(content)
+          : await Isolate.run(() => jsonDecode(content));
       if (decoded is Map<String, dynamic> &&
           decoded['format'] == PresetService.currentFormat) {
         return SnapshotMetadata.fromJson(decoded, file.path);
@@ -145,14 +148,11 @@ class SnapshotService {
     return null;
   }
 
-  /// Resolves the on-disk file backing [snapshotId].
-  ///
-  /// Guarded by [_isSafeSnapshotId]: an id that is not a strict single path
-  /// segment yields `null` before any path construction. Snapshot ids come
-  /// from snapshot JSON metadata and may be attacker-chosen text if the
-  /// vault file is tampered with; unguarded, `..\victim`, `../victim`, or an
-  /// absolute drive path would escape [baseDir] through [p.join] and let
-  /// [deleteSnapshot] and [restoreSnapshot] target arbitrary files (F2-4).
+  /// Resolves the on-disk file backing [snapshotId]; mutates nothing.
+  /// Guarded by [_isSafeSnapshotId] (F2-4): ids may be attacker-chosen
+  /// (tampered vault JSON); a crafted id such as `..\victim` would escape
+  /// [baseDir] via [p.join] and redirect [deleteSnapshot] or
+  /// [restoreSnapshot] at arbitrary files.
   Future<File?> _findSnapshotFile(String snapshotId) async {
     if (!_isSafeSnapshotId(snapshotId)) return null;
 
@@ -164,8 +164,8 @@ class SnapshotService {
     final directAsIs = File(p.join(baseDir.path, snapshotId));
     if (await directAsIs.exists()) return directAsIs;
 
-    // Metadata-enumeration fallback: structurally safe (only inspects files
-    // enumerated under [baseDir]) and compared against their id metadata.
+    // Metadata-enumeration fallback: only files enumerated under [baseDir]
+    // are inspected, and candidates must match id metadata.
     if (!await baseDir.exists()) return null;
     final entities = await baseDir.list().toList();
     for (final entity in entities.whereType<File>()) {
@@ -176,18 +176,25 @@ class SnapshotService {
     return null;
   }
 
-  /// A snapshot id is safe only when it is a strict single path segment:
-  /// non-empty, with no surrounding whitespace, no separators, no drive /
-  /// NTFS-stream colon syntax, not a relative-name reserve, and unchanged
-  /// by [p.basename].
-  bool _isSafeSnapshotId(String id) {
-    return id.isNotEmpty &&
-        id == id.trim() &&
-        !id.contains('/') &&
-        !id.contains(r'\') &&
-        !id.contains(':') &&
-        id != '.' &&
-        id != '..' &&
-        p.basename(id) == id;
-  }
+  /// Strict single path segment guard: non-empty, trim-stable,
+  /// separator- and colon-free, not `.`/`..`, and [p.basename]-stable.
+  bool _isSafeSnapshotId(String id) =>
+      id.isNotEmpty &&
+      id == id.trim() &&
+      !id.contains('/') &&
+      !id.contains(r'\') &&
+      !id.contains(':') &&
+      id != '.' &&
+      id != '..' &&
+      p.basename(id) == id;
+
+  /// Inline decode cap; bigger snapshots parse in a worker isolate.
+  static const int _inlineDecodeLimit = 256 * 1024;
+
+  static String _encodeJsonWorker(Map<String, dynamic> payload) =>
+      const JsonEncoder.withIndent('  ').convert(payload);
+
+  static List<LocalizationsOverridesCompanion> _deserializeWorker(
+    String content,
+  ) => const PresetService().deserializePreset(content);
 }

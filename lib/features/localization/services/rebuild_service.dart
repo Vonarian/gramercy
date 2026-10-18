@@ -4,31 +4,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/isolates/config_blk_service.dart';
 import 'package:gramercy/core/logging/app_logger.dart';
 import 'package:gramercy/features/localization/models/rebuild_models.dart';
-import 'package:gramercy/features/localization/providers/localization_providers.dart';
+import 'package:gramercy/features/localization/providers/snapshot_providers.dart';
 import 'package:gramercy/features/localization/services/backup_service.dart';
 import 'package:gramercy/features/localization/services/game_process_service.dart';
-import 'package:gramercy/features/localization/services/rebuild_synthesizer.dart';
-import 'package:gramercy/features/localization/services/snapshot_service.dart';
 import 'package:path/path.dart' as p;
 
 export 'package:gramercy/features/localization/models/rebuild_models.dart';
-export 'package:gramercy/features/localization/providers/localization_providers.dart'
-    show rebuildServiceProvider;
 export 'package:gramercy/features/localization/services/backup_service.dart';
 export 'package:gramercy/features/localization/services/game_process_service.dart';
-export 'package:gramercy/features/localization/services/rebuild_synthesizer.dart';
+
+final rebuildServiceProvider = Provider<RebuildService>((ref) {
+  return RebuildService(snapshotService: ref.watch(snapshotServiceProvider));
+});
 
 class RebuildService {
   final BackupService backupService;
   final GameProcessService gameProcessService;
-  final RebuildSynthesizer synthesizer;
   final SnapshotService? snapshotService;
   final Future<void> Function(File)? fileDeleter;
 
   const RebuildService({
     this.backupService = const BackupService(),
     this.gameProcessService = const GameProcessService(),
-    this.synthesizer = const RebuildSynthesizer(),
     this.snapshotService,
     this.fileDeleter,
   });
@@ -190,9 +187,4 @@ class RebuildService {
 
   Future<bool> launchWarThunder(String wtPath) =>
       gameProcessService.launchWarThunder(wtPath);
-
-  Future<RebuildSummary> reloadAndSynthesize({
-    required WidgetRef ref,
-    required String wtPath,
-  }) => synthesizer.reloadAndSynthesize(ref: ref, wtPath: wtPath);
 }

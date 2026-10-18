@@ -3,7 +3,7 @@
 
 ## 1. Core Operating Principles & Non-Negotiables
 
-Every agent operating within this codebase must strictly observe three core pillars:
+Every agent operating within this codebase must strictly observe four core pillars:
 
 1. **Always Follow GitFlow:** Branch from `dev`, commit via Conventional Commits, merge to `dev`, verify on `dev`, then release to `main`.
 
@@ -11,6 +11,7 @@ Every agent operating within this codebase must strictly observe three core pill
 
 3. **Rigid Test-Driven Development (TDD):** Red → Green → Refactor. Write failing tests **before** implementation code. Maintain ≥ 80% test coverage on business logic, repositories, and state controllers.
 
+4. **Caveman Ultracave Mode Default & Enabled:** Every agent communication must operate in Ultracave mode (`/ultracave`) by default. Answer first, fragments only, zero fluff/ceremony, payload verbatim.
 ---
 
 ## 2. GitFlow & Branch Lifecycle
@@ -23,7 +24,7 @@ Every agent operating within this codebase must strictly observe three core pill
 
 * **Working Branches**: Always branched directly from `dev` using strict naming conventions:
 
-* `feat/<feature-name>`: New UI flows, state machines, or client capabilities (e.g., `feat/routine-state-machine`).
+* `feat/<feature-name>`: New UI flows, state machines, or client capabilities (e.g., `feat/preset-import-flow`).
 
 * `fix/<bug-name>`: Bug repairs and regressions (e.g., `fix/drift-batch-insert-deadlock`).
 
@@ -31,7 +32,7 @@ Every agent operating within this codebase must strictly observe three core pill
 
 * `refactor/<target>`: Structural code improvements without behavioral change (e.g., `refactor/extract-metric-dao`).
 
-* `test/<test-suite>`: Unit, widget, or repository test additions (e.g., `test/routine-dao-cases`).
+* `test/<test-suite>`: Unit, widget, or repository test additions (e.g., `test/rebuild-dao-cases`).
 
 * `docs/<doc-name>`: Documentation updates (e.g., `docs/update-architecture-spec`).
 
@@ -49,7 +50,7 @@ All commit messages must follow the [Conventional Commits](https://www.conventio
 
 
 * **Examples**:
-* `feat(routine): implement morning protocol state progression`
+* `feat(preset): validate community pack imports`
 
 * `fix(sync): resolve drift batch insert deadlock`
 
@@ -130,7 +131,7 @@ All new features, state notifiers, repositories, and bug fixes must follow the *
 ### 4.2 Flutter Testing Standards
 
 * **Tooling**: `flutter_test`, `mocktail` for mocks and spies.
-* **Pattern**: Grouped behavior-driven unit, repository, and widget tests (`group('RoutineRepository', () { ... })`).
+* **Pattern**: Grouped behavior-driven unit, repository, and widget tests (`group('LocalizationRepository', () { ... })`).
 * **Execution Command**:
 ```bash
 flutter test --coverage
@@ -166,6 +167,7 @@ Before submitting a PR or marking a task complete, verify every requirement:
 * [ ] **Commit Format**: All commit messages follow the Conventional Commits specification.
 * [ ] **Integration Confirmed on `dev`**: Branch merged/rebased to `dev` and verified clean prior to the `main` release PR.
 * [ ] **Agent Skills Hygiene**: Customizations and skills are kept exclusively under `.agents/skills/` (no duplicate `.agent/`, `.gemini/`, or unignored `.impeccable/` artifacts).
+* [ ] **Terse Agent Voice**: Communication follows Ultracave mode default (`/ultracave`) with payload-only answers.
 
 ---
 
@@ -176,4 +178,28 @@ Before submitting a PR or marking a task complete, verify every requirement:
   * Use the `impeccable` skill (`.agents/skills/impeccable/SKILL.md`) for frontend design critique, visual hierarchy audit, typography, layout polishing, and styling workflows.
   * Execute bundled CLI tools and scripts directly via `.agents/skills/impeccable/scripts/...`.
 * **Runtime Hygiene**: Runtime state, caches, and local configurations (such as `.impeccable/`) must stay gitignored and never committed to version control.
-
+
+
+<!-- caveman-begin -->
+Respond terse like smart caveman. All technical substance stay. Only fluff die. Then cut again. Payload only.
+
+Rules:
+- Default: Ultracave mode (ALWAYS enabled). Fragments, one word when one word is enough, each fact once.
+- Answer first: Answer, then reason, then next step.
+- Kill ceremony: No greeting, hedging, pleasantries, recap, or closer.
+- Short word: "fix" not "implement a solution for".
+- Articles optional, meaning never: Drop articles, copulas, connectives when order stays clear.
+- One idea per sentence: ASD-STE100 is the floor: 20 words max, active voice, imperative for instructions, one term per thing, pronoun only with an obvious referent.
+- Payload verbatim: Code blocks, commands, paths, API names, error strings unchanged.
+- Tool runs: bounded status: One line in, one line out. No text between routine calls.
+- User's language: Compress the style, not the language.
+- Never perform caveman: No prefix, no announcement, no "me think", no normal answer plus caveman copy.
+
+Switch: /ultracave (default), /caveman (standard), /megacave (Classical Chinese 文言文)
+Stop: "stop caveman" or "normal mode"
+
+Auto-Clarity: plain prose for security warnings, irreversible actions, step order a fragment could scramble, user confused, questions you ask the user. Resume after.
+
+Boundaries: code, comments, commits, PRs, docs written normal; existing comments kept unless asked.
+Floor: code, commands, paths, numbers and error strings verbatim; never drop not/never/no/only.
+<!-- caveman-end -->

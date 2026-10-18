@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/services/preferences_service.dart';
+import 'package:gramercy/core/services/steam_library_scanner.dart';
 
 final prefsProvider = Provider<PreferencesService>((ref) {
   throw UnimplementedError('prefsProvider must be overridden in ProviderScope');
@@ -19,25 +20,7 @@ class WtPathNotifier extends Notifier<String?> {
   }
 
   bool autoDetect() {
-    final home = Platform.environment['HOME'] ?? '';
-    final candidatePaths = <String>[
-      if (Platform.isWindows) ...[
-        r'C:\Program Files (x86)\Steam\steamapps\common\War Thunder',
-        r'D:\SteamLibrary\steamapps\common\War Thunder',
-        r'E:\SteamLibrary\steamapps\common\War Thunder',
-        r'C:\Games\WarThunder',
-        r'C:\WarThunder',
-      ],
-      if (Platform.isLinux && home.isNotEmpty) ...[
-        '$home/.local/share/Steam/steamapps/common/War Thunder',
-        '$home/.steam/steam/steamapps/common/War Thunder',
-        '$home/.steam/root/steamapps/common/War Thunder',
-      ],
-      if (Platform.isMacOS && home.isNotEmpty) ...[
-        '$home/Library/Application Support/Steam/steamapps/common/War Thunder',
-      ],
-    ];
-
+    final candidatePaths = SteamLibraryScanner.findCandidateInstallDirs();
     for (final path in candidatePaths) {
       if (Directory(path).existsSync()) {
         setPath(path);

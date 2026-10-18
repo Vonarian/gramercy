@@ -5,22 +5,29 @@ import 'package:gramercy/core/isolates/localization_worker.dart';
 import 'package:gramercy/core/logging/app_logger.dart';
 import 'package:gramercy/core/security/lang_file_guard.dart';
 import 'package:gramercy/features/localization/models/rebuild_models.dart';
-import 'package:gramercy/features/localization/providers/localization_providers.dart';
+import 'package:gramercy/features/localization/providers/db_provider.dart';
+import 'package:gramercy/features/localization/providers/environment_providers.dart';
+import 'package:gramercy/features/localization/providers/strings_providers.dart';
 
-class RebuildSynthesizer {
-  const RebuildSynthesizer();
+/// Provider-anchored reload & apply flow: replaces the old RebuildSynthesizer
+/// whose public API leaked WidgetRef into the service layer. UI code reads
+/// [rebuildFlowProvider] and calls [reloadAndSynthesize] with values only.
+class RebuildFlow {
+  final Ref _ref;
 
-  Future<List<String>> _invalidateAndGetFiles(WidgetRef ref) async {
-    ref.invalidate(availableFilesProvider);
-    final files = await ref.read(availableFilesProvider.future);
+  const RebuildFlow(this._ref);
+
+  Future<List<String>> _invalidateAndGetFiles() async {
+    _ref.invalidate(availableFilesProvider);
+    final files = await _ref.read(availableFilesProvider.future);
     for (final file in files) {
-      ref.invalidate(baseStringsProvider(file));
+      _ref.invalidate(baseStringsProvider(file));
     }
     return files;
   }
 
-  Future<int> _reapplyOverrides(WidgetRef ref, String wtPath) async {
-    final db = ref.read(dbProvider);
+  Future<int> _reapplyOverrides(String wtPath) async {
+    final db = _ref.read(dbProvider);
     final allOverrides = await db.getAllOverrides();
     final overridesByFile = <String, Map<String, String>>{};
 
@@ -29,11 +36,11 @@ class RebuildSynthesizer {
           ov.customValue;
     }
 
-    final worker = ref.read(workerServiceProvider);
+    final worker = _ref.read(workerServiceProvider);
     var appliedCount = 0;
 
     for (final entry in overridesByFile.entries) {
-      appliedCount += await _applyEntryOverrides(ref, worker, wtPath, entry);
+      appliedCount += await _applyEntryOverrides(worker, wtPath, entry);
     }
     return appliedCount;
   }
@@ -42,13 +49,12 @@ class RebuildSynthesizer {
   /// preset JSON via the vault. deserializePreset now validates strict
   /// basenames, but legacy/migrated rows could still hold traversal or
   /// absolute values that `p.join` would happily splice into a path (it does
-  /// not normalize `..` and drops everything before an absolute part), so the
-  /// write site re-derives the path through [safeLangFilePath] instead.
+  /// not normalize `..` and drops everything before an absolute part), so
+  /// the write site re-derives the path through [safeLangFilePath] instead.
   ///
   /// Unsafe values are skipped without logging their contents (log-forging
   /// hygiene; see audit F2-5).
   Future<int> _applyEntryOverrides(
-    WidgetRef ref,
     LocalizationWorkerService worker,
     String wtPath,
     MapEntry<String, Map<String, String>> entry,
@@ -78,17 +84,14 @@ class RebuildSynthesizer {
       );
       return 0;
     }
-    ref.invalidate(baseStringsProvider(fileName));
+    _ref.invalidate(baseStringsProvider(fileName));
     return entry.value.length;
   }
 
-  Future<RebuildSummary> reloadAndSynthesize({
-    required WidgetRef ref,
-    required String wtPath,
-  }) async {
+  Future<RebuildSummary> reloadAndSynthesize({required String wtPath}) async {
     try {
-      final files = await _invalidateAndGetFiles(ref);
-      final appliedCount = await _reapplyOverrides(ref, wtPath);
+      final files = await _invalidateAndGetFiles();
+      final appliedCount = await _reapplyOverrides(wtPath);
 
       AppLogger.instance.i(
         'Reloaded ${files.length} files and re-applied $appliedCount overrides',
@@ -110,3 +113,5 @@ class RebuildSynthesizer {
     }
   }
 }
+
+final rebuildFlowProvider = Provider<RebuildFlow>(RebuildFlow.new);

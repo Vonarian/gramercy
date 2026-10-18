@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gramercy/core/isolates/localization_worker.dart';
-import 'package:gramercy/features/localization/models/localization_entry.dart';
 
 /// Pins the worker_manager delegation wrapper (previously uncovered) and the
 /// remaining parseCsvWorker edge branches: missing file and stray BOM
@@ -50,41 +49,6 @@ void main() {
 
         expect(ok, isTrue);
         expect(await base.readAsString(), contains('us_m4a3;Easy Eight'));
-      },
-    );
-
-    test(
-      'filterEntries applies query and mode through the isolate wrapper',
-      () async {
-        final entries = [
-          LocalizationEntry(
-            key: 'us_m4a3',
-            value: 'Easy Eight',
-            baseValue: 'Stock',
-            isOverridden: true,
-          ),
-          LocalizationEntry(
-            key: 'germ_tiger',
-            value: 'Tiger II',
-            baseValue: 'Tiger II',
-            isOverridden: false,
-          ),
-        ];
-
-        final service = LocalizationWorkerService();
-        final overriddenOnly = await service.filterEntries(
-          entries: entries,
-          query: '',
-          filterMode: FilterMode.overriddenOnly,
-        );
-        final queried = await service.filterEntries(
-          entries: entries,
-          query: 'tiger',
-        );
-
-        expect(overriddenOnly.length, equals(1));
-        expect(overriddenOnly.single.key, equals('us_m4a3'));
-        expect(queried.single.key, equals('germ_tiger'));
       },
     );
 

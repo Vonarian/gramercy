@@ -1,14 +1,34 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/database/database.dart';
 import 'package:gramercy/core/logging/app_logger.dart';
-import 'package:gramercy/features/localization/providers/localization_providers.dart';
+import 'package:gramercy/core/security/lang_file_guard.dart';
+import 'package:gramercy/features/localization/models/localization_entry.dart';
 import 'package:path/path.dart' as p;
 
+import 'config_providers.dart';
+import 'db_provider.dart';
+import 'environment_providers.dart';
+
+/// Guard-validated deployment inputs for one export run (wtPath, fileName,
+/// guarded target path).
+typedef _ExportTarget = ({String wtPath, String fileName, String safePath});
+
+/// Debounce window between an override save and the coalesced auto-deploy.
+final autoExportDebounceProvider = Provider<Duration>(
+  (_) => const Duration(seconds: 2),
+);
+
 class ExportNotifier extends Notifier<ExportState> {
+  Timer? _autoExportTimer;
+
   @override
-  ExportState build() => const ExportState();
+  ExportState build() {
+    ref.onDispose(() => _autoExportTimer?.cancel());
+    return const ExportState();
+  }
 
   void _setState(ExportState exportState) => state = exportState;
 
@@ -27,6 +47,17 @@ class ExportNotifier extends Notifier<ExportState> {
     if (!File(configBlkPath).existsSync()) return;
     await worker.patchConfigBlk(configBlkPath);
     ref.invalidate(configBlkStatusProvider);
+  }
+
+  /// Schedules one coalesced auto-deploy after [autoExportDebounceProvider]:
+  /// rapid successive saves cancel the pending timer, so edit bursts cost a
+  /// single full export instead of one per save.
+  void requestAutoExport() {
+    _autoExportTimer?.cancel();
+    _autoExportTimer = Timer(ref.read(autoExportDebounceProvider), () {
+      _autoExportTimer = null;
+      exportCurrentFile();
+    });
   }
 
   /// Runs the CSV export and honors the worker's symlink/non-regular-file
@@ -51,7 +82,8 @@ class ExportNotifier extends Notifier<ExportState> {
       return false;
     }
 
-    ref.invalidate(baseStringsProvider(fileName));
+    // Base-strings cache intentionally NOT invalidated here: overrides
+    // re-merge from the drift watch stream (perf audit Critical #1).
     AppLogger.instance.i(
       'Deployed $fileName (${overridesMap.length} overrides)',
       tag: 'EXPORT',
@@ -72,25 +104,16 @@ class ExportNotifier extends Notifier<ExportState> {
         message: 'Deploying patches to game...',
       ),
     );
-    final wtPath = ref.read(wtPathProvider);
-    final fileName = ref.read(selectedFileProvider);
-
-    if (wtPath == null || wtPath.isEmpty) {
-      _fail('War Thunder install path is not set.');
-      return false;
-    }
+    final target = _resolveExportTarget();
+    if (target == null) return false;
 
     try {
-      final overridesMap = await _overridesFor(fileName);
-      await _patchConfigIfPresent(wtPath);
-      return await _deploy(
-        fileName,
-        p.join(wtPath, 'lang', fileName),
-        overridesMap,
-      );
+      final overridesMap = await _overridesFor(target.fileName);
+      await _patchConfigIfPresent(target.wtPath);
+      return await _deploy(target.fileName, target.safePath, overridesMap);
     } catch (e, st) {
       AppLogger.instance.e(
-        'Export failed for $fileName',
+        'Export failed for ${target.fileName}',
         tag: 'EXPORT',
         error: e,
         stack: st,
@@ -100,7 +123,59 @@ class ExportNotifier extends Notifier<ExportState> {
     }
   }
 
+  /// Resolves path/fileName guards (audit B1) before any deployment work.
+  /// Fails loud via [ExportStatus.error] and returns null when unusable.
+  _ExportTarget? _resolveExportTarget() {
+    final wtPath = ref.read(wtPathProvider);
+    final fileName = ref.read(selectedFileProvider);
+
+    if (wtPath == null || wtPath.isEmpty) {
+      _fail('War Thunder install path is not set.');
+      return null;
+    }
+
+    final targetPath = safeLangFilePath(wtPath, fileName);
+    if (targetPath == null) {
+      AppLogger.instance.w(
+        'Refusing export for unsafe lang file name: $fileName',
+        tag: 'EXPORT',
+      );
+      _fail('Refusing export: "fileName" is not a safe lang file name.');
+      return null;
+    }
+    return (wtPath: wtPath, fileName: fileName, safePath: targetPath);
+  }
+
   void reset() => state = const ExportState();
+
+  Future<void> saveOverride({
+    required String fileName,
+    required String key,
+    required String customValue,
+  }) async {
+    final db = ref.read(dbProvider);
+    await db.saveOverride(
+      LocalizationsOverridesCompanion.insert(
+        fileName: fileName,
+        stringKey: key,
+        customValue: customValue,
+      ),
+    );
+    if (ref.read(autoExportProvider)) {
+      requestAutoExport();
+    }
+  }
+
+  Future<void> revertOverride({
+    required String fileName,
+    required String key,
+  }) async {
+    final db = ref.read(dbProvider);
+    await db.deleteOverride(fileName, key);
+    if (ref.read(autoExportProvider)) {
+      requestAutoExport();
+    }
+  }
 }
 
 final exportNotifierProvider = NotifierProvider<ExportNotifier, ExportState>(
@@ -112,30 +187,14 @@ Future<void> saveLocalizationOverride({
   required String fileName,
   required String key,
   required String customValue,
-}) async {
-  final db = ref.read(dbProvider);
-  await db.saveOverride(
-    LocalizationsOverridesCompanion.insert(
-      fileName: fileName,
-      stringKey: key,
-      customValue: customValue,
-    ),
-  );
-
-  if (ref.read(autoExportProvider)) {
-    await ref.read(exportNotifierProvider.notifier).exportCurrentFile();
-  }
-}
+}) => ref
+    .read(exportNotifierProvider.notifier)
+    .saveOverride(fileName: fileName, key: key, customValue: customValue);
 
 Future<void> revertLocalizationOverride({
   required WidgetRef ref,
   required String fileName,
   required String key,
-}) async {
-  final db = ref.read(dbProvider);
-  await db.deleteOverride(fileName, key);
-
-  if (ref.read(autoExportProvider)) {
-    await ref.read(exportNotifierProvider.notifier).exportCurrentFile();
-  }
-}
+}) => ref
+    .read(exportNotifierProvider.notifier)
+    .revertOverride(fileName: fileName, key: key);

@@ -15,11 +15,23 @@ String wtOrigPath(String sourcePath) => '$sourcePath.orig';
 /// atomic rename onto [targetPath] (F1-3).
 String wtTmpPath(String targetPath) => '$targetPath.tmp';
 
-/// Quotes [value] for CSV emission when it contains `;`, `"`, CR or LF (F2-2).
+/// Formula triggers that cause spreadsheet apps (Excel, LibreOffice Calc)
+/// to evaluate cell contents as formulas on CSV open (CWE-1236).
+final RegExp _formulaInjectionTrigger = RegExp(r'^[=@\t]|[+\-][a-zA-Z_@]');
+
+/// Checks whether [value] starts with a potential formula injection payload.
+bool isPotentialCsvFormula(String value) =>
+    value.isNotEmpty && _formulaInjectionTrigger.hasMatch(value);
+
+/// Quotes [value] for CSV emission when it contains `;`, `"`, CR or LF (F2-2),
+/// and neutralizes spreadsheet formula prefixes (CWE-1236).
 /// Doubling embedded `"` characters is part of the quoting contract.
-String formatWtCsvValue(String value) => _wtValueQuotedTrigger.hasMatch(value)
-    ? '"${value.replaceAll('"', '""')}"'
-    : value;
+String formatWtCsvValue(String value) {
+  final neutralized = isPotentialCsvFormula(value) ? "'$value" : value;
+  return _wtValueQuotedTrigger.hasMatch(neutralized)
+      ? '"${neutralized.replaceAll('"', '""')}"'
+      : neutralized;
+}
 
 /// Splits one physical CSV line into RAW columns, honouring `"` regions
 /// (F2-3): a `"` toggles the quote region; a doubled `""` inside a region
@@ -29,6 +41,9 @@ String formatWtCsvValue(String value) => _wtValueQuotedTrigger.hasMatch(value)
 /// semantics stay identical downstream. A field left open at end of line is
 /// treated as closed there (lenient).
 List<String> splitWtLine(String line) {
+  // Fast path: the overwhelming majority of game rows contain no quotes, so
+  // native split is ~10x cheaper than the per-character state machine below.
+  if (!line.contains('"')) return line.split(';');
   final columns = <String>[];
   final current = StringBuffer();
   var inQuotes = false;

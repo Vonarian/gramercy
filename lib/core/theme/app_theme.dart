@@ -58,71 +58,11 @@ class AppTheme {
         'Noto Sans',
         'sans-serif',
       ],
-      cardTheme: CardThemeData(
-        color: surface,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          side: const BorderSide(color: border),
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: surfaceElevated,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 10,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: primaryAmber, width: 1.5),
-        ),
-        hintStyle: const TextStyle(color: textMuted, fontSize: 13),
-        labelStyle: const TextStyle(color: textSecondary, fontSize: 13),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryAmber,
-          foregroundColor: Colors.black,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          textStyle: const TextStyle(
-            fontFamily: 'Inter',
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-          ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: textPrimary,
-          side: const BorderSide(color: border),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          textStyle: const TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-          ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        ),
-      ),
-      dialogTheme: DialogThemeData(
-        backgroundColor: surface,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          side: const BorderSide(color: border),
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
+      cardTheme: _cardTheme,
+      inputDecorationTheme: _inputDecorationTheme,
+      elevatedButtonTheme: _elevatedButtonTheme,
+      outlinedButtonTheme: _outlinedButtonTheme,
+      dialogTheme: _dialogTheme,
       dividerTheme: const DividerThemeData(
         color: border,
         thickness: 1,
@@ -135,4 +75,73 @@ class AppTheme {
       ),
     );
   }
+
+  static InputDecorationTheme get _inputDecorationTheme => InputDecorationTheme(
+    filled: true,
+    fillColor: surfaceElevated,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(6),
+      borderSide: const BorderSide(color: border),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(6),
+      borderSide: const BorderSide(color: border),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(6),
+      borderSide: const BorderSide(color: primaryAmber, width: 1.5),
+    ),
+    hintStyle: const TextStyle(color: textMuted, fontSize: 13),
+    labelStyle: const TextStyle(color: textSecondary, fontSize: 13),
+  );
+
+  static ElevatedButtonThemeData get _elevatedButtonTheme =>
+      ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryAmber,
+          foregroundColor: Colors.black,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          textStyle: const TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        ),
+      );
+
+  static OutlinedButtonThemeData get _outlinedButtonTheme =>
+      OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: textPrimary,
+          side: const BorderSide(color: border),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          textStyle: const TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        ),
+      );
+
+  static DialogThemeData get _dialogTheme => DialogThemeData(
+    backgroundColor: surface,
+    surfaceTintColor: Colors.transparent,
+    shape: RoundedRectangleBorder(
+      side: const BorderSide(color: border),
+      borderRadius: BorderRadius.circular(10),
+    ),
+  );
+
+  static CardThemeData get _cardTheme => CardThemeData(
+    color: surface,
+    elevation: 0,
+    shape: RoundedRectangleBorder(
+      side: const BorderSide(color: border),
+      borderRadius: BorderRadius.circular(8),
+    ),
+  );
 }

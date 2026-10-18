@@ -45,14 +45,28 @@ class AppDatabase extends _$AppDatabase {
     return select(localizationsOverrides).get();
   }
 
-  // Batch upsert multiple overrides in a single transaction
+  // Batch upsert multiple overrides in a single drift batch instead of a
+  // per-row await chain, so snapshot/preset restores stay fast.
   Future<int> batchUpsertOverrides(
     List<LocalizationsOverridesCompanion> entries,
   ) async {
     if (entries.isEmpty) return 0;
-    await transaction(() async {
+    await batch((b) {
       for (final entry in entries) {
-        await saveOverride(entry);
+        b.insert(
+          localizationsOverrides,
+          entry,
+          onConflict: DoUpdate(
+            (old) => LocalizationsOverridesCompanion(
+              customValue: entry.customValue,
+              updatedAt: Value(DateTime.now()),
+            ),
+            target: [
+              localizationsOverrides.fileName,
+              localizationsOverrides.stringKey,
+            ],
+          ),
+        );
       }
     });
     AppLogger.instance.i(

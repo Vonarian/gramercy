@@ -18,87 +18,13 @@ class OnboardingSetupView extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  'assets/images/app_logo.png',
-                  width: 72,
-                  height: 72,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => const Icon(
-                    Icons.radio,
-                    size: 56,
-                    color: AppTheme.primaryAmber,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'War Thunder Localization Setup',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Follow these quick steps to inspect and edit in-game strings:',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
-              ),
+              const _OnboardingHeader(),
               const SizedBox(height: 24),
-              SetupStepCard(
+              const SetupStepCard(
                 step: '1',
                 title: 'Set War Thunder Directory',
                 subtitle: 'Locate your War Thunder installation folder.',
-                action: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        final ok = ref
-                            .read(wtPathProvider.notifier)
-                            .autoDetect();
-                        if (ok) {
-                          ref.invalidate(availableFilesProvider);
-                          ref.invalidate(configBlkStatusProvider);
-                        }
-                      },
-                      icon: const Icon(
-                        Icons.auto_awesome,
-                        size: 14,
-                        color: Colors.black,
-                      ),
-                      label: const Text(
-                        'Auto-Detect',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Inter',
-                        ),
-                      ),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: () async {
-                        final dir = await FilePicker.getDirectoryPath(
-                          dialogTitle: 'Select War Thunder Directory',
-                        );
-                        if (dir != null && dir.isNotEmpty) {
-                          await ref.read(wtPathProvider.notifier).setPath(dir);
-                          ref.invalidate(availableFilesProvider);
-                          ref.invalidate(configBlkStatusProvider);
-                        }
-                      },
-                      icon: const Icon(Icons.folder_open, size: 14),
-                      label: const Text(
-                        'Browse Folder',
-                        style: TextStyle(fontFamily: 'Inter'),
-                      ),
-                    ),
-                  ],
-                ),
+                action: _OnboardingStep1Actions(),
               ),
               const SizedBox(height: 12),
               const SetupStepCard(
@@ -110,6 +36,94 @@ class OnboardingSetupView extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _OnboardingHeader extends StatelessWidget {
+  const _OnboardingHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Image.asset(
+            'assets/images/app_logo.png',
+            width: 72,
+            height: 72,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) =>
+                const Icon(Icons.radio, size: 56, color: AppTheme.primaryAmber),
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'War Thunder Localization Setup',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Follow these quick steps to inspect and edit in-game strings:',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+        ),
+      ],
+    );
+  }
+}
+
+class _OnboardingStep1Actions extends ConsumerWidget {
+  const _OnboardingStep1Actions();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        ElevatedButton.icon(
+          onPressed: () {
+            final ok = ref.read(wtPathProvider.notifier).autoDetect();
+            if (ok) {
+              ref.invalidate(availableFilesProvider);
+              ref.invalidate(configBlkStatusProvider);
+            }
+          },
+          icon: const Icon(Icons.auto_awesome, size: 14, color: Colors.black),
+          label: const Text(
+            'Auto-Detect',
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Inter',
+            ),
+          ),
+        ),
+        OutlinedButton.icon(
+          onPressed: () async {
+            final dir = await FilePicker.getDirectoryPath(
+              dialogTitle: 'Select War Thunder Directory',
+            );
+            if (dir != null && dir.isNotEmpty) {
+              await ref.read(wtPathProvider.notifier).setPath(dir);
+              ref.invalidate(availableFilesProvider);
+              ref.invalidate(configBlkStatusProvider);
+            }
+          },
+          icon: const Icon(Icons.folder_open, size: 14),
+          label: const Text(
+            'Browse Folder',
+            style: TextStyle(fontFamily: 'Inter'),
+          ),
+        ),
+      ],
     );
   }
 }

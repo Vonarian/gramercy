@@ -24,35 +24,7 @@ class ConfigStatusPill extends ConsumerWidget {
       data: (status) {
         if (!status.exists) return const SizedBox.shrink();
         if (status.isLocalizationEnabled) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppTheme.emeraldGreen.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: AppTheme.emeraldGreen.withValues(alpha: 0.3),
-              ),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.check_circle,
-                  color: AppTheme.emeraldGreen,
-                  size: 14,
-                ),
-                SizedBox(width: 6),
-                Text(
-                  'testLocalization: ACTIVE',
-                  style: TextStyle(
-                    color: AppTheme.emeraldGreen,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          );
+          return const _ActiveConfigPill();
         }
         return OutlinedButton.icon(
           onPressed: () => patchConfigBlkHelper(ref),
@@ -73,6 +45,37 @@ class ConfigStatusPill extends ConsumerWidget {
       },
       loading: () => const SizedBox.shrink(),
       error: (err, _) => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _ActiveConfigPill extends StatelessWidget {
+  const _ActiveConfigPill();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTheme.emeraldGreen.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppTheme.emeraldGreen.withValues(alpha: 0.3)),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check_circle, color: AppTheme.emeraldGreen, size: 14),
+          SizedBox(width: 6),
+          Text(
+            'testLocalization: ACTIVE',
+            style: TextStyle(
+              color: AppTheme.emeraldGreen,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
