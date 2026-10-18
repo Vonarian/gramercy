@@ -22,6 +22,7 @@ class GameProcessServiceProbeCommand {
 }
 
 class GameProcessService {
+  static const String _warThunderSteamUri = 'steam://rungameid/236390';
   const GameProcessService({ProcessRunner? runProcess})
     : _runProcess = runProcess ?? _defaultRunProcess;
 
@@ -58,31 +59,11 @@ class GameProcessService {
   Future<bool> launchWarThunder(String wtPath) async {
     try {
       if (Platform.isWindows) {
-        final launcher = File(p.join(wtPath, 'launcher.exe'));
-        final aces = File(p.join(wtPath, 'win64', 'aces.exe'));
-        final acesRoot = File(p.join(wtPath, 'aces.exe'));
-
-        if (await launcher.exists()) {
-          await _startDetached(launcher.path);
-          return true;
-        } else if (await aces.exists()) {
-          await _startDetached(aces.path);
-          return true;
-        } else if (await acesRoot.exists()) {
-          await _startDetached(acesRoot.path);
-          return true;
-        } else {
-          final res = await _runProcess('cmd', [
-            '/c',
-            'start',
-            'steam://rungameid/236390',
-          ]);
-          return res.exitCode == 0;
-        }
+        return await _launchWindows(wtPath);
       } else if (Platform.isLinux || Platform.isMacOS) {
         final (exe, args) = (
           Platform.isLinux ? 'xdg-open' : 'open',
-          <String>['steam://rungameid/236390'],
+          <String>[_warThunderSteamUri],
         );
         final res = await _runProcess(exe, args);
         return res.exitCode == 0;
@@ -95,6 +76,28 @@ class GameProcessService {
       );
       return false;
     }
+  }
+
+  /// Windows launch order: launcher.exe, then any aces.exe layout, and the
+  /// Steam URI protocol as the last resort so a Steam-managed install still
+  /// opens (audit B3 detection keeps the human out of manual config).
+  Future<bool> _launchWindows(String wtPath) async {
+    final launcher = File(p.join(wtPath, 'launcher.exe'));
+    final aces = File(p.join(wtPath, 'win64', 'aces.exe'));
+    final acesRoot = File(p.join(wtPath, 'aces.exe'));
+
+    if (await launcher.exists()) {
+      await _startDetached(launcher.path);
+      return true;
+    } else if (await aces.exists()) {
+      await _startDetached(aces.path);
+      return true;
+    } else if (await acesRoot.exists()) {
+      await _startDetached(acesRoot.path);
+      return true;
+    }
+    final res = await _runProcess('cmd', ['/c', 'start', _warThunderSteamUri]);
+    return res.exitCode == 0;
   }
 
   Future<void> _startDetached(String path) =>
