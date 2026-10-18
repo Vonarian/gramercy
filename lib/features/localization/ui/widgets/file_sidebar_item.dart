@@ -19,8 +19,8 @@ class FileSidebarItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final overridesAsync = ref.watch(overridesProvider(file));
-    final overrideCount = overridesAsync.value?.length ?? 0;
+    final overrideCount =
+        ref.watch(fileOverridesCountProvider(file)).value ?? 0;
 
     return Tooltip(
       message: isCollapsed ? '$file ($overrideCount modified)' : '',

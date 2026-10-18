@@ -3,10 +3,19 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/isolates/localization_worker.dart';
 import 'package:gramercy/features/localization/providers/config_providers.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 
 final workerServiceProvider = Provider<LocalizationWorkerService>((ref) {
   return LocalizationWorkerService();
+});
+
+/// App version from the platform package metadata (pubspec `version`), so the
+/// About dialog can never drift from the release version. Overridable in
+/// widget tests to pin the rendered subtitle.
+final appVersionProvider = FutureProvider<String>((ref) async {
+  final info = await PackageInfo.fromPlatform();
+  return info.version;
 });
 
 /// Lists the real (non-symlink) csv files inside [langDir], basenames only.
