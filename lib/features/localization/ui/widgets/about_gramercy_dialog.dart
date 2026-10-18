@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gramercy/features/localization/providers/localization_providers.dart';
 
 import '../../../../core/theme/app_theme.dart';
 
@@ -50,7 +52,7 @@ class AboutGramercyDialog extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 14),
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -62,9 +64,20 @@ class AboutGramercyDialog extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(
-                'v1.5.0 • War Thunder Custom Localization Engine',
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+              Consumer(
+                builder: (context, ref, _) {
+                  final version = ref.watch(appVersionProvider).value;
+                  final subtitle = version == null
+                      ? 'War Thunder Custom Localization Engine'
+                      : 'v$version • War Thunder Custom Localization Engine';
+                  return Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 11,
+                    ),
+                  );
+                },
               ),
             ],
           ),
