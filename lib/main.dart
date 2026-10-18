@@ -7,6 +7,7 @@ import 'package:gramercy/core/logging/app_logger.dart';
 import 'package:gramercy/core/logging/log_entry.dart';
 import 'package:gramercy/core/logging/log_path.dart';
 import 'package:gramercy/core/services/preferences_service.dart';
+import 'package:gramercy/core/services/steam_install_prefill.dart';
 import 'package:gramercy/core/theme/app_theme.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
 import 'package:gramercy/features/localization/ui/home_screen.dart';
@@ -35,21 +36,10 @@ Future<void> main() async {
   // 2. Desktop Window Optimization
   await _setupDesktopWindow();
 
-  // 3. Initialize Persistent Storage: SharedPreferences & Drift SQLite
-  final sharedPreferences = await SharedPreferences.getInstance();
-  final preferencesService = PreferencesService(sharedPreferences);
-  final database = AppDatabase();
+  // 3. Initialize Services: prefs, database, logging, first-run detection
+  final (preferencesService, database) = await _initServices();
 
-  // 4. Configure Application Logging
-  final logFilePath = resolveLogFilePath();
-  AppLogger.instance.configure(
-    minLevel: LogLevel.fromString(preferencesService.logLevel),
-    fileOutput: logFilePath != null && preferencesService.enableFileLogging,
-    logFilePath: logFilePath,
-  );
-  AppLogger.instance.i('War Thunder Localization Editor booted');
-
-  // 5. Run Application with Injected Dependencies
+  // 4. Run Application with Injected Dependencies
   runApp(
     ProviderScope(
       overrides: [
@@ -59,6 +49,29 @@ Future<void> main() async {
       child: const WarThunderEditorApp(),
     ),
   );
+}
+
+Future<(PreferencesService, AppDatabase)> _initServices() async {
+  final sharedPreferences = await SharedPreferences.getInstance();
+  final preferencesService = PreferencesService(sharedPreferences);
+  final database = AppDatabase();
+
+  final logFilePath = resolveLogFilePath();
+  AppLogger.instance.configure(
+    minLevel: LogLevel.fromString(preferencesService.logLevel),
+    fileOutput: logFilePath != null && preferencesService.enableFileLogging,
+    logFilePath: logFilePath,
+  );
+  AppLogger.instance.i('War Thunder Localization Editor booted');
+
+  // First-run install detection (audit B3): prefills the persisted War
+  // Thunder install path from Steam libraries/registry. Explicit user
+  // choices always win — an existing pref is never rewritten.
+  await SteamInstallPrefill.autoFillMissingInstallPath(
+    prefs: preferencesService,
+  );
+
+  return (preferencesService, database);
 }
 
 Future<void> _setupDesktopWindow() async {

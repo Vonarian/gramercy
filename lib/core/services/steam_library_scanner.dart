@@ -61,6 +61,7 @@ class SteamLibraryScanner {
     bool? isWindows,
     bool? isMacOS,
     bool? isLinux,
+    String? windowsSteamRoot,
   }) {
     final win = isWindows ?? Platform.isWindows;
     final mac = isMacOS ?? Platform.isMacOS;
@@ -69,7 +70,12 @@ class SteamLibraryScanner {
     final localAppData = Platform.environment['LOCALAPPDATA'] ?? '';
 
     final candidates = <String>[];
-    for (final vdfPath in _findSteamVdfPaths(win, mac, lin, home)) {
+    final vdfPaths = <String>[
+      if (windowsSteamRoot != null && windowsSteamRoot.isNotEmpty)
+        p.join(windowsSteamRoot, 'steamapps', 'libraryfolders.vdf'),
+      ..._findSteamVdfPaths(win, mac, lin, home),
+    ];
+    for (final vdfPath in vdfPaths) {
       final file = File(vdfPath);
       if (file.existsSync()) {
         try {
