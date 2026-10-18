@@ -6,8 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_theme.dart';
-import '../../providers/db_provider.dart';
-import '../../services/preset_service.dart';
+import '../../providers/localization_providers.dart';
 import 'snapshot_history_dialog.dart';
 
 class PresetsMenuButton extends ConsumerWidget {
@@ -59,21 +58,17 @@ class PresetsMenuButton extends ConsumerWidget {
   }
 
   Future<void> _exportPreset(BuildContext context, WidgetRef ref) async {
-    final presetService = ref.read(presetServiceProvider);
-    final overrides = await presetService.loadAllOverrides(
-      ref.read(dbProvider),
-    );
+    final export = await ref.read(presetMenuModelProvider).buildExport();
 
     if (!context.mounted) return;
-    if (overrides.isEmpty) {
+    if (export == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No custom overrides to export.')),
       );
       return;
     }
 
-    final jsonStr = presetService.serializePreset(overrides);
-    final bytes = Uint8List.fromList(utf8.encode(jsonStr));
+    final bytes = Uint8List.fromList(utf8.encode(export.json));
 
     final savedUri = await FilePicker.saveFile(
       dialogTitle: 'Export Gramercy Preset',
@@ -88,7 +83,7 @@ class PresetsMenuButton extends ConsumerWidget {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Exported ${overrides.length} overrides to preset.'),
+          content: Text('Exported ${export.count} overrides to preset.'),
         ),
       );
     }
@@ -107,8 +102,8 @@ class PresetsMenuButton extends ConsumerWidget {
       final jsonStr = await _readFileContent(picked);
       if (jsonStr == null || !context.mounted) return;
       final count = await ref
-          .read(presetServiceProvider)
-          .importPreset(ref.read(dbProvider), jsonStr);
+          .read(presetMenuModelProvider)
+          .importFromJson(jsonStr);
 
       if (!context.mounted) return;
       if (count == 0) {

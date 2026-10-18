@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -26,6 +27,15 @@ class PresetService {
     return db.batchUpsertOverrides(companions);
   }
 
+  /// Isolate-backed [importPreset]: the untrusted-JSON parse/companion build
+  /// runs off the main isolate (community presets can be large); the
+  /// [FormatException] for unsafe target files (F1-1/F2-1) still propagates.
+  Future<int> importPresetAsync(AppDatabase db, String jsonString) async {
+    final companions = await Isolate.run(() => _companionsFrom(jsonString));
+    if (companions.isEmpty) return 0;
+    return db.batchUpsertOverrides(companions);
+  }
+
   Future<int> importCompanions(
     AppDatabase db,
     List<LocalizationsOverridesCompanion> companions,
@@ -35,7 +45,45 @@ class PresetService {
     DateTime? exportedAt,
     String? source,
   }) {
-    final payload = {
+    final jsonResult = _encodePresetJson(
+      _buildPayload(overrides, exportedAt: exportedAt, source: source),
+    );
+    AppLogger.instance.i(
+      'Serialized ${overrides.length} overrides to preset format',
+      tag: 'PRESET',
+    );
+    return jsonResult;
+  }
+
+  /// Isolate-backed [serializePreset] twin: identical bytes for identical
+  /// inputs ([exportedAt]/[source] pinned), with encoding off the main
+  /// isolate. Logging stays on the caller isolate.
+  Future<String> serializePresetAsync(
+    List<LocalizationsOverride> overrides, {
+    DateTime? exportedAt,
+    String? source,
+  }) async {
+    final jsonResult = await Isolate.run(
+      () => _encodePresetJson(
+        _buildPayload(overrides, exportedAt: exportedAt, source: source),
+      ),
+    );
+    AppLogger.instance.i(
+      'Serialized ${overrides.length} overrides to preset format',
+      tag: 'PRESET',
+    );
+    return jsonResult;
+  }
+
+  static String _encodePresetJson(Map<String, Object> payload) =>
+      const JsonEncoder.withIndent('  ').convert(payload);
+
+  Map<String, Object> _buildPayload(
+    List<LocalizationsOverride> overrides, {
+    DateTime? exportedAt,
+    String? source,
+  }) {
+    return {
       'format': currentFormat,
       'version': currentVersion,
       'source': source ?? defaultSource,
@@ -50,17 +98,20 @@ class PresetService {
           )
           .toList(),
     };
-
-    const encoder = JsonEncoder.withIndent('  ');
-    final jsonResult = encoder.convert(payload);
-    AppLogger.instance.i(
-      'Serialized ${overrides.length} overrides to preset format',
-      tag: 'PRESET',
-    );
-    return jsonResult;
   }
 
   List<LocalizationsOverridesCompanion> deserializePreset(String jsonString) {
+    final companions = _companionsFrom(jsonString);
+    AppLogger.instance.i(
+      'Deserialized ${companions.length} valid overrides from preset JSON',
+      tag: 'PRESET',
+    );
+    return companions;
+  }
+
+  /// Pure parse/companion-build core, shared by the sync and isolate-backed
+  /// import paths; contains no logging so it stays worker-isolate safe.
+  List<LocalizationsOverridesCompanion> _companionsFrom(String jsonString) {
     final decoded = _decodePayload(jsonString);
     final rawOverrides = _extractOverrides(decoded);
 
@@ -69,11 +120,6 @@ class PresetService {
       final companion = _toCompanion(item);
       if (companion != null) companions.add(companion);
     }
-
-    AppLogger.instance.i(
-      'Deserialized ${companions.length} valid overrides from preset JSON',
-      tag: 'PRESET',
-    );
     return companions;
   }
 
