@@ -24,13 +24,12 @@ class LogViewerDialog extends ConsumerStatefulWidget {
 
 class _LogViewerDialogState extends ConsumerState<LogViewerDialog> {
   String _searchQuery = '';
-  LogLevel? _filterLevel;
 
   @override
   Widget build(BuildContext context) {
     final entries = ref.watch(logEntriesNotifierProvider);
     final activeLevel = ref.watch(logLevelNotifierProvider);
-    final filtered = _filterEntries(entries);
+    final filtered = _filterEntries(entries, activeLevel);
 
     return Dialog(
       backgroundColor: AppTheme.surface,
@@ -61,9 +60,9 @@ class _LogViewerDialogState extends ConsumerState<LogViewerDialog> {
     );
   }
 
-  List<LogEntry> _filterEntries(List<LogEntry> entries) {
+  List<LogEntry> _filterEntries(List<LogEntry> entries, LogLevel minLevel) {
     return entries.where((e) {
-      if (_filterLevel != null && e.level.index < _filterLevel!.index) {
+      if (e.level.index < minLevel.index) {
         return false;
       }
       if (_searchQuery.isNotEmpty) {
