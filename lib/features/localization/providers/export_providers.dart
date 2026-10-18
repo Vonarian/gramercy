@@ -8,6 +8,10 @@ import 'package:gramercy/core/security/lang_file_guard.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
 import 'package:path/path.dart' as p;
 
+/// Guard-validated deployment inputs for one export run (wtPath, fileName,
+/// guarded target path).
+typedef _ExportTarget = ({String wtPath, String fileName, String safePath});
+
 /// Debounce window between an override save and the coalesced auto-deploy.
 final autoExportDebounceProvider = Provider<Duration>(
   (_) => const Duration(seconds: 2),
@@ -41,9 +45,9 @@ class ExportNotifier extends Notifier<ExportState> {
     ref.invalidate(configBlkStatusProvider);
   }
 
-  /// Schedules one coalesced auto-deploy after [autoExportDebounceProvider].
-  /// Rapid successive saves cancel the pending timer, so a burst of edits
-  /// costs a single full export pipeline instead of one per save.
+  /// Schedules one coalesced auto-deploy after [autoExportDebounceProvider]:
+  /// rapid successive saves cancel the pending timer, so edit bursts cost a
+  /// single full export instead of one per save.
   void requestAutoExport() {
     _autoExportTimer?.cancel();
     _autoExportTimer = Timer(ref.read(autoExportDebounceProvider), () {
@@ -74,9 +78,8 @@ class ExportNotifier extends Notifier<ExportState> {
       return false;
     }
 
-    // The base-strings cache is intentionally NOT invalidated here: overrides
-    // re-merge from the drift watch stream, so re-parsing the whole CSV per
-    // deploy would only burn the hot path (perf audit, Critical #1).
+    // Base-strings cache intentionally NOT invalidated here: overrides
+    // re-merge from the drift watch stream (perf audit Critical #1).
     AppLogger.instance.i(
       'Deployed $fileName (${overridesMap.length} overrides)',
       tag: 'EXPORT',
@@ -97,32 +100,16 @@ class ExportNotifier extends Notifier<ExportState> {
         message: 'Deploying patches to game...',
       ),
     );
-    final wtPath = ref.read(wtPathProvider);
-    final fileName = ref.read(selectedFileProvider);
-
-    if (wtPath == null || wtPath.isEmpty) {
-      _fail('War Thunder install path is not set.');
-      return false;
-    }
-
-    // Defense-in-depth (audit B1): same sandbox guard as the rebuild path.
-    final targetPath = safeLangFilePath(wtPath, fileName);
-    if (targetPath == null) {
-      AppLogger.instance.w(
-        'Refusing export for unsafe lang file name: $fileName',
-        tag: 'EXPORT',
-      );
-      _fail('Refusing export: "fileName" is not a safe lang file name.');
-      return false;
-    }
+    final target = _resolveExportTarget();
+    if (target == null) return false;
 
     try {
-      final overridesMap = await _overridesFor(fileName);
-      await _patchConfigIfPresent(wtPath);
-      return await _deploy(fileName, targetPath, overridesMap);
+      final overridesMap = await _overridesFor(target.fileName);
+      await _patchConfigIfPresent(target.wtPath);
+      return await _deploy(target.fileName, target.safePath, overridesMap);
     } catch (e, st) {
       AppLogger.instance.e(
-        'Export failed for $fileName',
+        'Export failed for ${target.fileName}',
         tag: 'EXPORT',
         error: e,
         stack: st,
@@ -130,6 +117,29 @@ class ExportNotifier extends Notifier<ExportState> {
       _fail('Export failed: $e');
       return false;
     }
+  }
+
+  /// Resolves path/fileName guards (audit B1) before any deployment work.
+  /// Fails loud via [ExportStatus.error] and returns null when unusable.
+  _ExportTarget? _resolveExportTarget() {
+    final wtPath = ref.read(wtPathProvider);
+    final fileName = ref.read(selectedFileProvider);
+
+    if (wtPath == null || wtPath.isEmpty) {
+      _fail('War Thunder install path is not set.');
+      return null;
+    }
+
+    final targetPath = safeLangFilePath(wtPath, fileName);
+    if (targetPath == null) {
+      AppLogger.instance.w(
+        'Refusing export for unsafe lang file name: $fileName',
+        tag: 'EXPORT',
+      );
+      _fail('Refusing export: "fileName" is not a safe lang file name.');
+      return null;
+    }
+    return (wtPath: wtPath, fileName: fileName, safePath: targetPath);
   }
 
   void reset() => state = const ExportState();
@@ -169,7 +179,7 @@ final exportNotifierProvider = NotifierProvider<ExportNotifier, ExportState>(
 );
 
 Future<void> saveLocalizationOverride({
-  required dynamic ref,
+  required WidgetRef ref,
   required String fileName,
   required String key,
   required String customValue,
@@ -178,7 +188,7 @@ Future<void> saveLocalizationOverride({
     .saveOverride(fileName: fileName, key: key, customValue: customValue);
 
 Future<void> revertLocalizationOverride({
-  required dynamic ref,
+  required WidgetRef ref,
   required String fileName,
   required String key,
 }) => ref
