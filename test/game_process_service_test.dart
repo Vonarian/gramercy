@@ -1,9 +1,20 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gramercy/core/logging/app_logger.dart';
+import 'package:gramercy/core/logging/log_entry.dart';
 import 'package:gramercy/features/localization/services/game_process_service.dart';
 
+ProcessResult _res(int exitCode, String stdout) =>
+    ProcessResult(0, exitCode, stdout, '');
+
 void main() {
+  setUp(() {
+    AppLogger.instance
+      ..configure(minLevel: LogLevel.verbose, fileOutput: false)
+      ..clear();
+  });
+
   group('GameProcessService probe precision (audit B3)', () {
     test('windows runs tasklist with an exact IMAGENAME filter', () {
       final cmd = GameProcessServiceProbeCommand.windows();
@@ -47,30 +58,61 @@ INFO: No tasks are running which match the specified criteria.
     });
   });
 
-  group('GameProcessService runtime behavior (host platform branch)', () {
-    test('isGameRunning is false when the probe command fails', () async {
+  group('GameProcessService runtime behavior', () {
+    test('posix: exit code zero means the game is running', () async {
+      final calls = <(String, List<String>)>[];
       final service = GameProcessService(
-        runProcess: (_, _) => throw const OSError('no probe binary'),
+        runProcess: (exe, args) async {
+          calls.add((exe, args));
+          return _res(0, 'process matches');
+        },
       );
+
+      expect(await service.isGameRunning(), isTrue);
+      expect(calls.single.$1, 'pgrep');
+      expect(calls.single.$2, ['-x', 'aces']);
+    });
+
+    test('posix: non-zero exit code means the game is not running', () async {
+      final service = GameProcessService(
+        runProcess: (_, _) async => _res(1, ''),
+      );
+
       expect(await service.isGameRunning(), isFalse);
     });
 
-    test('isGameRunning true on exitCode 0 (posix pgrep -x)', () async {
-      if (!Platform.isWindows) {
-        final service = GameProcessService(
-          runProcess: (exe, args) async => ProcessResult(0, 0, '', ''),
-        );
-        expect(await service.isGameRunning(), isTrue);
-      }
+    test('a probe failure degrades to not-running with a warning', () async {
+      final service = GameProcessService(
+        runProcess: (_, _) async => throw const OSError('no probe binary'),
+      );
+
+      expect(await service.isGameRunning(), isFalse);
+      expect(
+        AppLogger.instance.entries.single.message,
+        contains('Error checking game process'),
+      );
     });
 
-    test('isGameRunning false on exitCode 1 (no process matched)', () async {
-      if (!Platform.isWindows) {
-        final service = GameProcessService(
-          runProcess: (exe, args) async => ProcessResult(0, 1, '', ''),
-        );
-        expect(await service.isGameRunning(), isFalse);
-      }
+    test('posix launch uses the platform opener with the steam URI', () async {
+      final calls = <(String, List<String>)>[];
+      final service = GameProcessService(
+        runProcess: (exe, args) async {
+          calls.add((exe, args));
+          return _res(0, '');
+        },
+      );
+
+      expect(await service.launchWarThunder('/wt'), isTrue);
+      expect(calls.single.$1, anyOf('open', 'xdg-open'));
+      expect(calls.single.$2, ['steam://rungameid/236390']);
+    });
+
+    test('a launcher failure is reported as false', () async {
+      final service = GameProcessService(
+        runProcess: (_, _) async => _res(1, 'nope'),
+      );
+
+      expect(await service.launchWarThunder('/wt'), isFalse);
     });
   });
 }
