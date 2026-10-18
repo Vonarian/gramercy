@@ -4,8 +4,8 @@ import 'package:gramercy/core/theme/app_theme.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
 import 'package:path/path.dart' as p;
 
-Future<void> patchConfigBlkHelper(dynamic ref) async {
-  final wtPath = ref.read(wtPathProvider) as String?;
+Future<void> patchConfigBlkHelper(WidgetRef ref) async {
+  final wtPath = ref.read(wtPathProvider);
   if (wtPath == null) return;
   final worker = ref.read(workerServiceProvider);
   final configBlkPath = p.join(wtPath, 'config.blk');

@@ -1,21 +1,21 @@
 import 'dart:io';
 
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gramercy/core/database/database.dart';
 import 'package:gramercy/core/isolates/localization_worker.dart';
 import 'package:gramercy/features/localization/providers/db_provider.dart';
 import 'package:gramercy/features/localization/providers/environment_providers.dart';
-import 'package:gramercy/features/localization/services/rebuild_synthesizer.dart';
+import 'package:gramercy/features/localization/providers/rebuild_controller.dart';
 
 /// End-to-end acceptance test for F1-1 (SEVERE): a hostile community preset
 /// row stored in the vault must NOT be able to escape lang/ during the
 /// advertised "Reload & Apply" flow, while legit rows keep applying.
 ///
-/// Real file IO lives in setUp / tester.runAsync, never directly in the
-/// fake-async test body.
+/// Runs against a ProviderContainer directly — the flow consumes a provider
+/// Ref, so no widget plumbing (and no tester.runAsync) is needed for the
+/// real file IO fixture.
 void main() {
   late Directory tempDir;
   late AppDatabase db;
@@ -45,34 +45,17 @@ void main() {
     }
   });
 
-  WidgetRef captureRef(WidgetTester tester) {
-    WidgetRef? captured;
-    tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          dbProvider.overrideWith((ref) => db),
-          workerServiceProvider.overrideWith(
-            (ref) => _DirectCsvWorkerService(),
-          ),
-          availableFilesProvider.overrideWith((ref) async => ['units.csv']),
-        ],
-        child: Directionality(
-          textDirection: TextDirection.ltr,
-          child: Consumer(
-            builder: (context, ref, _) {
-              captured = ref;
-              return const SizedBox.shrink();
-            },
-          ),
-        ),
-      ),
-    );
-    return captured!;
-  }
+  ProviderContainer container() => ProviderContainer(
+    overrides: [
+      dbProvider.overrideWithValue(db),
+      workerServiceProvider.overrideWith((ref) => _DirectCsvWorkerService()),
+      availableFilesProvider.overrideWith((ref) async => ['units.csv']),
+    ],
+  );
 
-  testWidgets(
+  test(
     'F1-1 hostile preset row is skipped on Reload & Apply; safe rows apply',
-    (WidgetTester tester) async {
+    () async {
       await db.saveOverride(
         LocalizationsOverridesCompanion.insert(
           fileName: 'units.csv',
@@ -98,32 +81,27 @@ void main() {
         ),
       );
 
-      final ref = captureRef(tester);
-      final summaryOrNull = await tester.runAsync(
-        () => RebuildSynthesizer().reloadAndSynthesize(
-          ref: ref,
-          wtPath: tempDir.path,
-        ),
-      );
-      expect(summaryOrNull, isNotNull);
-      final summary = summaryOrNull!;
-      await tester.runAsync(() async {
-        final unitsOut = await unitsFile.readAsString();
+      final c = container();
+      addTearDown(c.dispose);
+      final summary = await c
+          .read(rebuildFlowProvider)
+          .reloadAndSynthesize(wtPath: tempDir.path);
 
-        expect(summary.success, isTrue);
-        // Only the safe row is counted (hostile entries are skipped).
-        expect(summary.overridesApplied, equals(1));
-        // Safe override applied to the real game file.
-        expect(unitsOut, contains('us_m4a3;Easy Eight'));
-        // Victim outside lang/ survived every hostile row.
-        expect(await victimFile.readAsString(), 'DO NOT TOUCH');
-      });
+      final unitsOut = await unitsFile.readAsString();
+
+      expect(summary.success, isTrue);
+      // Only the safe row is counted (hostile entries are skipped).
+      expect(summary.overridesApplied, equals(1));
+      // Safe override applied to the real game file.
+      expect(unitsOut, contains('us_m4a3;Easy Eight'));
+      // Victim outside lang/ survived every hostile row.
+      expect(await victimFile.readAsString(), 'DO NOT TOUCH');
     },
   );
 
-  testWidgets(
+  test(
     'F1-1 success summary reports zero when every vault row is hostile',
-    (WidgetTester tester) async {
+    () async {
       await db.saveOverride(
         LocalizationsOverridesCompanion.insert(
           fileName: '../victim.csv',
@@ -132,18 +110,14 @@ void main() {
         ),
       );
 
-      final ref = captureRef(tester);
-      final summaryOrNull = await tester.runAsync(
-        () => RebuildSynthesizer().reloadAndSynthesize(
-          ref: ref,
-          wtPath: tempDir.path,
-        ),
-      );
-      expect(summaryOrNull, isNotNull);
-      expect(summaryOrNull!.overridesApplied, equals(0));
-      await tester.runAsync(
-        () async => expect(await victimFile.readAsString(), 'DO NOT TOUCH'),
-      );
+      final c = container();
+      addTearDown(c.dispose);
+      final summary = await c
+          .read(rebuildFlowProvider)
+          .reloadAndSynthesize(wtPath: tempDir.path);
+
+      expect(summary.overridesApplied, equals(0));
+      expect(await victimFile.readAsString(), 'DO NOT TOUCH');
     },
   );
 }

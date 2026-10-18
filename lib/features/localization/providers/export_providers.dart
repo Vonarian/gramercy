@@ -5,8 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/database/database.dart';
 import 'package:gramercy/core/logging/app_logger.dart';
 import 'package:gramercy/core/security/lang_file_guard.dart';
-import 'package:gramercy/features/localization/providers/localization_providers.dart';
+import 'package:gramercy/features/localization/models/localization_entry.dart';
 import 'package:path/path.dart' as p;
+
+import 'config_providers.dart';
+import 'db_provider.dart';
+import 'environment_providers.dart';
 
 /// Guard-validated deployment inputs for one export run (wtPath, fileName,
 /// guarded target path).
