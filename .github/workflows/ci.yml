@@ -105,12 +105,10 @@ jobs:
           echo "Line coverage: ${rate}% (minimum: ${COVERAGE_MIN}%, generated code excluded)"
           awk -v rate="$rate" -v min="${COVERAGE_MIN}" 'BEGIN { if (rate + 0 < min + 0) exit 1 }'
         env:
-          # AGENTS.md DoD target is 80%. Ladder creeps the gate up as the
-          # suite regains coverage instead of failing red mid-climb:
-          # 55 (raw, gen included) -> 73 (gen excluded, current truth).
-          # Next rungs: write tests for the 0% widget files, then pin 80.
-          COVERAGE_MIN: '73'
-
+          # AGENTS.md DoD target is 80%. Generated code is excluded from the
+          # denominator. With the widget/service test suite backfill in place,
+          # coverage sits at ~86%, so the DoD target is permanently pinned:
+          COVERAGE_MIN: '80'
       - name: Upload Coverage Report
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
