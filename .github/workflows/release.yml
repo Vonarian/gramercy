@@ -161,8 +161,11 @@ jobs:
     name: Build macOS Release
     needs: quality-and-test
     runs-on: macos-latest
-    # NOTE: this produces an Apple Silicon (arm64) app. Intel macOS is not
-    # built: add an x64 runner job plus lipo if universal support is wanted.
+    # Flutter stable (>= 3.47) builds universal2 (x86_64+arm64) macos apps by
+    # default; verified 2026-10: lipo shows both arches. FLUTTER_MACOS_ARM64_ONLY=0
+    # pins that behavior when Flutter later flips the default to arm64-only.
+    env:
+      FLUTTER_MACOS_ARM64_ONLY: '0'
     timeout-minutes: 40
 
     steps:
