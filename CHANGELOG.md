@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.0] - 2026-10-19
+
+### Added
+- **Steam Auto-Detection Path Prefill**: Game path automatically populates on onboarding using detected Steam libraries and Windows registry entries.
+- **Universal macOS Binary Build**: Pinned CI packaging and configuration for Apple Silicon universal2 distribution.
+
+### Performance & Architecture
+- **Background Isolate Serialization**: Offloaded preset JSON import/export and snapshot vault list metadata decoding to background isolates via `Isolate.run`.
+- **Decoupled Preset Flows**: Refactored preset export/import into `PresetMenuModel` to decouple UI presentation from underlying isolate execution.
+- **Rebuild Layering & Cycle Elimination**: Decoupled provider rebuild loops across rebuild flows and localization controllers.
+- **Database Count Streams**: Live override count badges powered directly by Drift SQLite count streams (`totalOverridesCountProvider`, `fileOverridesCountProvider`).
+
+### Fixed
+- **Log Viewer Level Filtering**: Properly wired active log level filter notifier to dynamically filter visible log terminal entries by severity.
+- **Dynamic App Versioning**: Sourced about dialog version dynamically from package metadata via `package_info_plus`.
+
+### Quality & Governance
+- **80% Test Coverage Gate**: Expanded test suite to 230 tests with comprehensive widget test coverage; pinned CI coverage gate to 80% with generated Drift sources excluded.
+- **LoC Budget Compliance**: Modularized guard helpers and build methods to strictly adhere to function and widget length limits.
+
+---
+
 ## [1.5.0] - 2026-10-17
 
 ### Added
