@@ -1,70 +1,64 @@
-# War Thunder Live (live.warthunder.com) Launch Listing
+# War Thunder Live Listing
 
-**Category:** Other / Mods & Tools  
-**Recommended Tags:** `#tool #mod #localization #customization #utility #names #cockpit #gramercy`
+**Category:** Other / Mods & Tools
+**Tags:** `#tool #localization #names #killfeed #utility`
 
----
-
-## Post Title Options
-- **Primary:** `[TOOL] Gramercy v1.4.0 — The Localization Cockpit: Stop Losing Your Custom Names Every Game Patch!`
-- **Alternative:** `Gramercy v1.4.0 | Never Lose Your Custom Kill Feed or Vehicle Names on Update Day Again`
+**Title:** Gramercy: a free desktop editor for War Thunder localization files
 
 ---
 
-## Listing Body (Markdown / BBCode Ready)
+## Body
 
-```markdown
-# ⚡ Gramercy v1.4.0 — War Thunder Localization Cockpit & Delta Vault
+Gramercy edits the text strings War Thunder loads through its own localization hook. Rename vehicles, change kill feed and HUD messages, then write the changes back into `lang/*.csv`. Your edits live in a local database outside the game folder, so a patch that replaces those files does not delete them.
 
-*"Gramercy!" — Radio Command [T-3-4] ("Thank you!")*
+It is free, open source under GPL-3.0, and runs on Windows (primary), Linux, and macOS.
 
-Tired of Gaijin's major updates breaking your custom vehicle names, corrupting CSVs with `#hud_mission_fail`, or wiping your kill feed memes?
+### What it actually does
 
-**Gramercy** is a free, open-source desktop cockpit engineered for War Thunder pilots, tankers, modders, and squadrons on **Windows, Linux, and macOS**.
+- Search and edit the game's localization strings in one list, with token filtering.
+- Store overrides in SQLite, outside the War Thunder directory.
+- Write only changed strings back to `lang/*.csv`, with a `.orig` backup and an atomic rename.
+- Save a snapshot before each cache purge or rebuild, and restore it later.
+- Export and import `.json` preset packs.
+- Toggle `testLocalization:b=yes` in `config.blk` for you.
 
----
+### Patch day
 
-### 🛡️ Why Gramercy Changes Everything
+A patch overwrites the localization files. The rebuild is manual on purpose:
 
-Traditional localization modding requires editing raw semicolon-delimited CSVs in `<War Thunder>/lang/` with Excel or Notepad. Every time Gaijin drops a major patch (*Alpha Strike*, *Dance of Dragons*, etc.), your edits either cause launch crashes or vanish entirely.
+1. Rebuild Game Strings, then Purge Cache.
+2. Launch War Thunder once to the hangar so it dumps fresh strings.
+3. Reload & Apply. Overrides come back from the database.
 
-**Gramercy fixes this once and for all:**
-1. **Armor-Plated Edit Locker**: Your customizations live in an isolated SQLite vault outside the game directory. Stock game files are never permanently overwritten.
-2. **Survive Every Game Update in 3 Steps**: 
-   - Click **Purge Cache** in Gramercy (auto-creates a safety snapshot).
-   - Launch War Thunder once to hangar to dump fresh strings.
-   - Click **Reload & Apply** — all your custom names are automatically restamped onto the new update!
-3. **1-Click Community Presets (.json)**: Share vehicle name packs, anime mods, tournament callouts, or meme kill feeds with squadron mates with a single file.
-4. **Instant 50,000+ String Search**: 120Hz smooth scrolling and multi-threaded background workers. Zero lag, zero UI freeze.
-5. **Automated Snapshot Safety Net**: Roll back any experimental changes with one click.
+### Anti-cheat
 
----
+Custom localization is a Gaijin feature. `testLocalization:b=yes` is the documented flag. Gramercy writes plain CSVs and that one line in `config.blk`. It does not attach to the game, read its memory, or modify binaries or network traffic. The source is public, so the file writes are auditable. No ban reports are known to me. Future enforcement is Gaijin's call, not mine.
 
-### 🟢 100% BattlEye Anti-Cheat (BEAC) Safe
-- **Official Gaijin Feature**: Uses the documented `testLocalization:b=yes` hook in `config.blk`.
-- **Zero Memory Injection**: Gramercy never touches game memory, running executables, or network packets.
-- **Pure Text Modification**: Strictly writes plain text CSVs inside the official `lang/` directory. Fully approved by Gaijin.
+### Quick start
 
----
+1. Download the archive for your platform from Releases and verify it against `SHA256SUMS.txt`.
+2. Extract and run `gramercy.exe` (or `./gramercy`, or `gramercy.app`).
+3. Point Gramercy at your War Thunder install, or let it scan Steam.
+4. Click Enable in config.blk.
+5. Pick a file, search a string, save an override, then Deploy to Game.
 
-### 📦 Included Starter Presets (Ready to Import!)
-We've included two instant starter packs in the release:
-- **Classic Memes & Tactical Kill Feed**: "TARGET OBLITERATED", "Snail Shekels", "Turret Toss Champion", and more!
-- **Historical Military Nomenclature**: Full realistic German (*Pz.Kpfw.*, *Leopard 2A7V*), US (*M1A2 SEP*, *Easy Eight*), and Soviet designations.
+Windows SmartScreen will warn about an unknown publisher. The builds are not code-signed, and that is explained in the README along with the hash check.
 
----
+### Included presets
 
-### 🚀 Quick Start Guide (Under 60 Seconds)
-1. **Download & Extract** `gramercy-windows-x64.zip` from GitHub Releases.
-2. Run `gramercy.exe`.
-3. In the top bar, click **Enable testLocalization** (Gramercy automatically handles `config.blk`).
-4. Select any file (e.g. `units.csv` or `ui.csv`), search for any string, and enter your custom name.
-5. Click **Apply to Game**. Launch War Thunder and enjoy!
+- `meme_killfeed_pack.json`
+- `historical_realistic_designations.json`
 
----
+Both are plain JSON. Read them before importing.
 
-### 🔗 Links & Downloads
-- **Latest Release (Win/Linux/Mac):** https://github.com/Vonarian/gramercy/releases/latest
-- **Source Code (GPL-3.0):** https://github.com/Vonarian/gramercy
-- **Issue Tracker & Feature Requests:** https://github.com/Vonarian/gramercy/issues
-```
+### Known limits
+
+- Windows is the primary target. Linux and macOS builds exist and are less exercised.
+- The game must be closed while deploying or purging. Gramercy blocks the purge when War Thunder is running, and Windows blocks the write if a CSV is locked.
+
+### Links
+
+- Releases: https://github.com/Vonarian/gramercy/releases/latest
+- Source and issues: https://github.com/Vonarian/gramercy
+
+Bug reports with the game version and the edited file are more useful than a star.

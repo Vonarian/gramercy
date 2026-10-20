@@ -12,7 +12,7 @@ War Thunder players, modders, simulation pilots/tankers, and localized content c
 
 ## Product Purpose
 
-Provide a native, ultra-responsive, zero-UI-lag desktop editor for War Thunder localization files. Modders can easily search through 50,000+ game strings, override vehicle/mission/menu names, and deploy them directly to the game without permanently altering original game assets or losing custom names across game updates.
+Provide a native, responsive desktop editor for War Thunder localization files. Modders can search the game's localization strings, override vehicle/mission/menu names, and deploy them directly to the game without permanently altering original game assets or losing custom names across game updates.
 
 ## Positioning
 
@@ -28,7 +28,7 @@ Unlike raw text/spreadsheet editors or destructive patch scripts, Gramercy uses 
 
 - **Delta Vault**: Drift SQLite database storing only `(fileName, stringKey, customValue, updatedAt)`.
 - **Isolate Offload**: All CSV parsing and export synthesis run off the UI thread via `worker_manager` isolates.
-- **Fixed-Extent Virtualization**: Fixed `itemExtent` virtualized list view ensuring steady 120Hz rendering over 50,000+ localization rows.
+- **Fixed-Extent Virtualization**: Fixed `itemExtent` virtualized list view keeps scrolling steady over the full localization set.
 - **Preserved Multi-Language Columns**: Exporter preserves all non-English columns and headers from base game CSVs while patching edited keys.
 - **Non-Destructive Backups**: Preserves `<filename>.orig` before any write.
 

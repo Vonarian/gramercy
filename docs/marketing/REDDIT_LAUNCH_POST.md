@@ -1,70 +1,51 @@
-# Reddit Launch Posts (`r/Warthunder` & `r/warthundermemes`)
+# Reddit Launch Post
 
-## 1. Primary Post: `r/Warthunder` (Showcase / Mod / Utility)
+One post. One title. No alternatives. Post as a text post with one GIF and the link in the body.
 
-**Post Type:** Video / Link / Text Post with Media  
-**Flair:** `Other` / `News` / `Art / Screenshot` (or Subreddit Mod Tool flair if approved)  
-
-### Title Options
-- **Option 1 (Recommended):** *I built an open-source tool so you never lose your custom vehicle names and kill feed memes when Gaijin drops an update [Gramercy v1.4.0]*
-- **Option 2:** *Tired of major updates breaking your custom localization? Meet Gramercy: an open-source desktop cockpit with 1-click update rebuilds & JSON presets*
-- **Option 3:** *No more Notepad crashes: Gramercy, a 120Hz localization editor that keeps your custom tank names safe across every WT patch*
-
-### Recommended Media Attachment
-Attach a short 20-30 second video or high-FPS GIF showing:
-1. Searching `tiger_II` in 50,000 strings with instant filtering.
-2. Changing the kill message to `"Sent to the Shadow Realm"`.
-3. Clicking **Apply to Game**.
-4. Showing the 3-step **Rebuild Game Strings Wizard** ("Purge Cache -> Launch WT -> Reload & Apply") showing how edits survive a patch.
+**Title:** I made a free editor for War Thunder localization files so custom names stop dying on patch day
 
 ---
 
-### Post Body (Markdown)
+## Body
 
-Hey everyone,
+I rename vehicles and edit kill feed strings in War Thunder. I got tired of doing it in Notepad, and I got tired of losing it every time a patch replaced the `lang` folder.
 
-If you’ve ever customized your War Thunder vehicle names, installed a meme kill feed, or used realistic NATO/Soviet vehicle designations, you already know the pain: **every time Gaijin drops a major patch, your files either break the game with missing `#hud_mission_fail` text or get completely wiped.**
+So I wrote Gramercy, a desktop editor for the game's localization files. It is free, open source under GPL-3.0, and runs on Windows, Linux, and macOS. Windows is the main target.
 
-Editing raw semicolon-delimited CSVs in Notepad or Excel sucks, one accidental missing quote crashes the client on launch, and sharing packs with your squadron requires manually copying giant files.
+What it does:
 
-To fix this once and for all, I built **[Gramercy](https://github.com/Vonarian/gramercy)** — a free, open-source desktop cockpit for War Thunder custom localizations (Windows, Linux, and macOS).
+- Reads the CSVs that War Thunder dumps through the `testLocalization` hook.
+- Stores your changes in a local SQLite database, outside the game folder.
+- Writes only your changed strings back into `lang/*.csv` when you hit Deploy to Game, after making a `.orig` backup.
+- Keeps a snapshot before each rebuild, so you can roll back.
+- Exports and imports `.json` preset packs, so a squadron can share one file.
+- Reapplies everything after a patch: Rebuild Game Strings, Purge Cache, launch the game once to the hangar, Reload & Apply. Your edits come back from the database, not from a backup copy of the game files.
 
----
+What it does not do:
 
-### What it actually does:
+- It does not touch game memory, binaries, or network traffic. It writes text files and one line in `config.blk`.
+- It does not give an advantage, unlock anything, or change gameplay.
+- The game must be closed when you deploy or purge. Gramercy refuses to purge while War Thunder is running, and Windows will refuse the write if a CSV is locked.
+- It is not code-signed. Windows SmartScreen will warn you.
 
-- **🛡️ Your edits survive game updates**: Your customizations live in an isolated SQLite vault outside the War Thunder directory. When a patch drops, just open Gramercy, hit **Purge Cache**, open WT to hangar once so it dumps fresh strings, and click **Reload & Apply**. Gramercy automatically re-stamps all your customizations onto the new update.
-- **⚡ Instant 50,000+ String Cockpit**: Zero UI lag. Multi-threaded background workers parse the massive CSVs so you can search through every vehicle, weapon, and radio command with instant 120Hz response.
-- **📦 1-Click Community Presets (.json)**: You can export and import entire customization packs in compact `.json` files. We already bundled two starter packs:
-  - *Classic Memes & Tactical Kill Feed* (e.g. "Sent to the shadow realm", "Turret Toss Champion", "Snail Shekels")
-  - *Historical Military Nomenclature* (Realistic German, US, Soviet, and British designations)
-- **🔄 Auto-Snapshot Safety Net**: Before every purge or rebuild, it automatically captures a restore point so you can roll back experimental changes with 1 click.
-- **🛠️ 1-Click Game Enabler**: Automatically toggles `testLocalization:b=yes` in `config.blk`.
+On the anti-cheat question: custom localization is a Gaijin feature. `testLocalization:b=yes` in `config.blk` is the documented switch. Gramercy only writes those CSVs and that flag, and the source is public, so you can check that claim instead of trusting it. No ban reports are known to me. I cannot promise what Gaijin or BattlEye will do in the future, because that is not mine to promise.
 
----
+Verify the download: every release ships a `SHA256SUMS.txt` next to the archives. The README has the one-line command to check it. Do that before you click Run anyway.
 
-### Is this safe from BattlEye / Anti-Cheat bans?
-**Yes, 100%.**
-Custom localizations are an **officially documented feature** provided directly by Gaijin via the `testLocalization` flag in `config.blk`. Gramercy **never touches game memory**, runs zero code inside the game process, and doesn't modify network packets. It strictly writes plain text CSVs to your official `lang/` folder.
+Repo and downloads: https://github.com/Vonarian/gramercy
 
----
+Two preset packs are included, one for meme kill feeds and one for historical designations. Both are plain JSON, so you can read them before importing.
 
-### Links & Downloads:
-- **Download Latest Release:** [GitHub Releases](https://github.com/Vonarian/gramercy/releases/latest) (Windows `.zip`, Linux `.tar.gz`, macOS)
-- **Source Code (GPL-3.0):** [GitHub Repository](https://github.com/Vonarian/gramercy)
-- **Included Presets:** Check the `/presets` folder in the release for ready-to-import packs!
-
-*(Note for Windows users: Because code signing certificates cost hundreds of dollars a year, Windows SmartScreen might pop up with "Unknown Publisher" — click "More Info" -> "Run anyway". The entire app is open-source and built transparently via GitHub Actions).*
-
-Feedback, bug reports, and preset ideas are welcome! Let me know what you think.
+If it breaks, open an issue with your game version and the file you edited. I would rather fix a real bug than argue about whether the tool is useful.
 
 ---
 
-## 2. Meme Post: `r/warthundermemes`
+## First comment to pin
 
-**Title:** *POV: You spend 2 hours editing CSV files in Notepad just for Gaijin to wipe it 10 minutes later*  
-**Media:** Side-by-side meme image or video:
-- *Top panel:* Player crying over a corrupted `units.csv` after an update.
-- *Bottom panel:* Gigachad clicking "Reload & Apply" in Gramercy with 0 effort.
-**Comment from OP:**  
-*"Shameless plug for [Gramercy](https://github.com/Vonarian/gramercy) — made it so you never have to deal with broken CSVs or lost custom names on update day again. Fully open-source and free."*
+Screenshots are from my machine, v1.6.0. The GIF shows one edit, Deploy to Game, and the result in the hangar. The patch-day loop is in the README if you want the full sequence.
+
+## Notes
+
+- Do not mention AI unless someone asks. If they ask, answer once with the facts from the playbook and link the repo.
+- Do not edit the post to argue with a hostile comment. Reply in the thread, once, then stop.
+- If a comment finds a real bug, say "that's a bug", fix it, and post the patch release in the same thread.

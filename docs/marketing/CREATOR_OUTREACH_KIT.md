@@ -1,56 +1,48 @@
-# Content Creator & Community Outreach Kit
+# Creator and Community Outreach
 
-## 1. YouTuber / Streamer Pitch (Direct Message / Business Email)
+Short messages. No flattery paragraph, no feature list, no ask. The goal is a working build in their hands, not a review.
 
-**Subject:** Quick Q regarding your custom WT kill feed / names (open-source tool)
+## 1. Direct message to a creator
 
-**Body:**
+Send only to creators who already show custom names, kill feed text, or localization edits in their videos. If they do not, do not send it.
 
-> Hey [Creator Name],
+**Subject:** Gramercy, an editor for War Thunder localization files
+
+> Hey [name],
 >
-> Love your content (especially [mention recent video/meme])!
+> You use custom vehicle names in your videos, so this may save you time. I wrote Gramercy, a free open-source editor for War Thunder's localization files. It keeps your edits outside the game folder and reapplies them after patches.
 >
-> Noticed you use custom vehicle names / kill feed messages in your videos. If you’ve ever had Gaijin’s updates wipe your custom CSVs or crash your game on patch day, I built an open-source tool you might find useful: **Gramercy** (https://github.com/Vonarian/gramercy).
+> Build for your platform: [release link]. Windows will warn about an unknown publisher; the release has a SHA256SUMS file and the README shows how to check it.
 >
-> It’s a dedicated desktop cockpit for War Thunder localization:
-> - **Update-Immune:** Customizations live in a separate vault; our 3-step rebuild restores all your custom names after game updates automatically.
-> - **1-Click Shareable Presets:** You can export your personal kill feed / vehicle name setup as a single `.json` file for your community/subscribers to download and apply in 1 click.
-> - **100% BattlEye Safe:** Strictly uses Gaijin’s official `testLocalization` flag; zero memory injection.
+> No ask. If it is useful, use it. If it breaks, tell me and I will fix it.
+
+Keep it under 100 words. Do not offer money, a "partnership", or a featured spot in the first message.
+
+## 2. Squadron Discord message
+
+Post in the tools or mods channel, not in general chat, and only with the moderator's permission.
+
+> Gramercy, free open-source editor for War Thunder localization files: [link]
 >
-> Completely free and open-source (GPL-3.0). If you want your personal preset featured or bundled in the app for your viewers, I’d be thrilled to set that up!
+> Renames vehicles and edits kill feed and HUD strings, keeps them in a local database outside the game folder, and reapplies them after patches. Writes only `lang/*.csv` and the `testLocalization` flag in `config.blk`; it does not touch the game process.
 >
-> Best,  
-> [Your Name / Handle]
+> Windows, Linux, macOS. Not code-signed, so verify the release hash. Bug reports go to the issue tracker.
 
----
+Do not paste a feature grid. Do not use emoji headers.
 
-## 2. Squadron Discord Announcement (For Squadron Leads & Modding Hubs)
+## 3. Sharing a preset with a creator
 
-**Channel:** `#announcements` or `#mods-and-tools`
+Only with their consent, and only from strings they actually published.
 
-**Message:**
+1. Ask if they want their setup packaged as a `.json` preset.
+2. If yes, ask them to export it themselves from Gramercy, or send you the exact strings and the file they belong to.
+3. Name the file after them, credit them in the release notes, and link their channel.
+4. Never reverse-engineer a creator's list from a video and ship it as a pack. That is the fastest way to lose the community.
 
-> 📢 **Squadron Customization Update: Gramercy v1.4.0**
->
-> Hey @everyone,
->
-> If you're tired of manually editing `units.csv` or losing all your custom tank names and kill feeds every time Gaijin updates the game, check out **Gramercy**:
-> 🔗 **Download:** https://github.com/Vonarian/gramercy/releases/latest
->
-> **Why we're recommending it:**
-> - 🛡️ **Update Survival:** Automatically re-applies your custom designations after game updates without touching vanilla files.
-> - 📦 **Squadron Presets:** We can now export and share our squadron's tactical callouts and vehicle names as a single `.json` pack that anyone can import in 5 seconds.
-> - ⚡ **Zero Lag:** Instant search across all 50,000+ game strings with zero UI freeze.
-> - 🟢 **100% Anti-Cheat Safe:** BattlEye compliant; uses Gaijin's official `testLocalization` setting.
->
-> Grab the starter packs in the release (includes *Meme Kill Feed* and *Historical Nomenclature*). Let us know your favorite custom setups!
+## 4. What to do when someone calls it AI slop
 
----
+Reply once, in the same thread, without defensiveness:
 
-## 3. Creator Preset Co-Marketing Strategy
+> Fair to be suspicious. The source is at [repo], GPL-3.0. It writes CSVs and one line in `config.blk`; you can read the whole write path. Here is the CI run and the release checksums: [links]. If something looks generated rather than built, point at it and I will fix it.
 
-### The "Creator Edition" Preset Playbook:
-1. **Identify 3-5 WT Creators** who feature custom kill feeds or funny text callouts in their videos.
-2. **Reverse-engineer or request their string list** and convert it into a `creator_<name>_pack.json`.
-3. **Send them a turnkey demo:** "Hey, I packaged your iconic kill feed callouts into a 1-click Gramercy preset so your fans don't have to manually edit CSV files anymore."
-4. **Offer a download link** they can drop in their YouTube video description or pinned comment.
+Then stop. Do not repeat the defense in other threads, and do not ask allies to argue for you.
