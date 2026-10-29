@@ -3,8 +3,13 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramercy/core/isolates/localization_worker.dart';
 import 'package:gramercy/features/localization/providers/config_providers.dart';
+import 'package:gramercy/features/localization/services/game_process_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
+
+final gameProcessServiceProvider = Provider<GameProcessService>((ref) {
+  return const GameProcessService();
+});
 
 final workerServiceProvider = Provider<LocalizationWorkerService>((ref) {
   return LocalizationWorkerService();

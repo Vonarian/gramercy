@@ -12,6 +12,8 @@ import 'config_providers.dart';
 import 'db_provider.dart';
 import 'environment_providers.dart';
 
+export 'override_actions.dart';
+
 /// Guard-validated deployment inputs for one export run (wtPath, fileName,
 /// guarded target path).
 typedef _ExportTarget = ({String wtPath, String fileName, String safePath});
@@ -107,6 +109,16 @@ class ExportNotifier extends Notifier<ExportState> {
     final target = _resolveExportTarget();
     if (target == null) return false;
 
+    final gameService = ref.read(gameProcessServiceProvider);
+    if (await gameService.isGameRunning()) {
+      AppLogger.instance.w(
+        'Refusing export while War Thunder is running',
+        tag: 'EXPORT',
+      );
+      _fail('War Thunder is running. Close the game before deploying changes.');
+      return false;
+    }
+
     try {
       final overridesMap = await _overridesFor(target.fileName);
       await _patchConfigIfPresent(target.wtPath);
@@ -181,20 +193,3 @@ class ExportNotifier extends Notifier<ExportState> {
 final exportNotifierProvider = NotifierProvider<ExportNotifier, ExportState>(
   ExportNotifier.new,
 );
-
-Future<void> saveLocalizationOverride({
-  required WidgetRef ref,
-  required String fileName,
-  required String key,
-  required String customValue,
-}) => ref
-    .read(exportNotifierProvider.notifier)
-    .saveOverride(fileName: fileName, key: key, customValue: customValue);
-
-Future<void> revertLocalizationOverride({
-  required WidgetRef ref,
-  required String fileName,
-  required String key,
-}) => ref
-    .read(exportNotifierProvider.notifier)
-    .revertOverride(fileName: fileName, key: key);

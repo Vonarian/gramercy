@@ -217,6 +217,8 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
+      id-token: write
+      attestations: write
 
     steps:
       - name: Checkout Code
@@ -272,6 +274,14 @@ jobs:
           TAG: ${{ steps.release_tag.outputs.tag }}
         run: |
           sha256sum "gramercy-windows-x64-${TAG}.zip" "gramercy-linux-x64-${TAG}.tar.gz" "gramercy-macos-${TAG}.zip" > SHA256SUMS.txt
+
+      - name: Attest Build Provenance
+        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
+        with:
+          subject-path: |
+            gramercy-windows-x64-*.zip
+            gramercy-linux-x64-*.tar.gz
+            gramercy-macos-*.zip
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
