@@ -51,6 +51,9 @@ app.*.map.json
 # Impeccable runtime state & cache
 .impeccable/
 
+# Court skill runtime state & jury logs
+/.court/
+
 # Impeccable skill engine payload: fetched & hash-verified by the launcher at setup, not committed
 .agents/skills/impeccable/scripts/bin/
 

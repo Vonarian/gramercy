@@ -6,6 +6,7 @@ import 'package:gramercy/core/database/database.dart';
 import 'package:gramercy/core/isolates/localization_worker.dart';
 import 'package:gramercy/features/localization/providers/localization_providers.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:gramercy/features/localization/services/game_process_service.dart';
 
 class _MockDb extends Mock implements AppDatabase {}
 
@@ -62,6 +63,14 @@ class _FakeWorker extends LocalizationWorkerService {
   }
 }
 
+class _FakeGameProcessService extends GameProcessService {
+  _FakeGameProcessService({this.running = false});
+  final bool running;
+
+  @override
+  Future<bool> isGameRunning() async => running;
+}
+
 extension _DeployCount on List<ExportStatus> {
   int get deployCount => where((s) => s == ExportStatus.success).length;
 }
@@ -98,6 +107,7 @@ void main() {
     ProviderContainer buildContainer({
       required _MockDb db,
       required LocalizationWorkerService worker,
+      GameProcessService? gameProcessService,
       Duration debounce = const Duration(milliseconds: 50),
     }) {
       return ProviderContainer(
@@ -110,6 +120,9 @@ void main() {
           autoExportDebounceProvider.overrideWithValue(debounce),
           dbProvider.overrideWithValue(db),
           workerServiceProvider.overrideWithValue(worker),
+          gameProcessServiceProvider.overrideWithValue(
+            gameProcessService ?? _FakeGameProcessService(),
+          ),
         ],
       );
     }
@@ -209,5 +222,28 @@ void main() {
         );
       },
     );
+
+    test('export refuses deployment when War Thunder is running', () async {
+      final db = _MockDb();
+      when(() => db.getOverridesForFile(any())).thenAnswer((_) async => []);
+      final worker = _FakeWorker();
+      final container = buildContainer(
+        db: db,
+        worker: worker,
+        gameProcessService: _FakeGameProcessService(running: true),
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(exportNotifierProvider.notifier);
+      final ok = await notifier.exportCurrentFile();
+
+      expect(ok, isFalse);
+      expect(worker.exportPatchedCsvCalls, 0);
+      expect(container.read(exportNotifierProvider).status, ExportStatus.error);
+      expect(
+        container.read(exportNotifierProvider).message,
+        contains('War Thunder is running'),
+      );
+    });
   });
 }
